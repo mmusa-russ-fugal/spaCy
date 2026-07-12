@@ -225,6 +225,15 @@ and add it to the processing pipeline. It'll then load in the model data from
 the data directory and return the modified `Language` class for you to use as
 the `nlp` object.
 
+{/* BLOCKLY-PIPELINE-BUILDER: preset "pipelines-overview" (src/widgets/blockly/presets.js).
+Primary home of the widget, full "build" mode: toolbox with all built-in
+component factories plus a generic custom component block, placement arguments
+(before/after/first/last), disable/exclude toggles and sourced components.
+Generates spacy.blank()/spacy.load() + nlp.add_pipe() Python matching the
+#built-in, #disabling and #sourced-components sections below. */}
+
+<BlocklyPipelineBuilder preset="pipelines-overview" title="Try it: build a pipeline" />
+
 <Infobox title="Changed in v3.0" variant="warning">
 
 spaCy v3.0 introduces a `config.cfg`, which includes more detailed settings for

@@ -459,6 +459,15 @@ component, adds it to the pipeline and returns it.
 | `validate` <Tag variant="new">3</Tag> | Whether to validate the component config and arguments against the types expected by the factory. Defaults to `True`. ~~bool~~                                                                                                                                                           |
 | **RETURNS**                           | The pipeline component. ~~Callable[[Doc], Doc]~~                                                                                                                                                                                                                                         |
 
+{/* BLOCKLY-PIPELINE-BUILDER: preset "api-add-pipe" (src/widgets/blockly/presets.js).
+Minimal "snippet" mode: a single component block with fields for the
+mutually-exclusive placement arguments (before/after/first/last) plus optional
+name=, source= and config=, generating the corresponding nlp.add_pipe() call.
+Shows an inline error hint when more than one placement argument is set,
+mirroring the runtime validation described above. */}
+
+<BlocklyPipelineBuilder preset="api-add-pipe" title="Try it: build an add_pipe call" />
+
 ## Language.create_pipe {id="create_pipe",tag="method",version="2"}
 
 Create a pipeline component from a factory.
