@@ -1,47 +1,65 @@
-import React from 'react'
+import React, { useState } from 'react'
 import PropTypes from 'prop-types'
+import Prism from 'prismjs'
 
-import Infobox from '../../components/infobox'
-import { InlineCode } from '../../components/inlineCode'
+import 'prismjs/components/prism-python.min.js'
+import 'prismjs/components/prism-ini.min.js'
+
 import PRESETS from './presets'
+import PipelineBuilderWidget from './widget'
+import SimpleWorkspace from './workspace'
+import { generate } from './generators'
 
 /**
- * Placeholder skeleton for the Blockly pipeline builder.
+ * Container for the pipeline builder widget: owns the workspace state,
+ * runs the generators and wires everything into the chrome. Only ever
+ * loaded client-side via the next/dynamic wrapper in
+ * ../blockly-pipeline-builder.js.
  *
- * This component is only ever loaded client-side (via the next/dynamic
- * wrapper in ../blockly-pipeline-builder.js) because Blockly needs the DOM.
- * The real editor replaces the placeholder below by:
- *
- *   1. importing 'blockly' here (and only here),
- *   2. injecting a workspace into the mount <div> in a useEffect, using
- *      preset.toolbox / preset.workspace to build the toolbox XML and
- *      the initial blocks, and disposing the workspace on unmount,
- *   3. subscribing to workspace changes and rendering the generated
- *      Python or config.cfg output (preset.output) in a code pane next
- *      to the editor.
- *
- * See ./README.md for the full integration plan and ./presets.js for the
- * per-location configuration.
+ * To swap in the Blockly editor, replace SimpleWorkspace below with a
+ * BlocklyWorkspace component implementing the same contract (see
+ * workspace.js for the state shape) — the chrome, generators and presets
+ * are already editor-agnostic.
  */
+
+const initialState = (preset) => ({
+    lang: preset.workspace.lang,
+    base: preset.workspace.base,
+    // Pipeline entries in presets are either plain factory names or
+    // objects with additional settings (e.g. source)
+    pipeline: preset.workspace.pipeline
+        .map((component) => (typeof component === 'string' ? { name: component } : component))
+        .map((component) => ({
+            source: null,
+            disabled: false,
+            fromBase: !!preset.workspace.base,
+            factory: component.factory || component.name,
+            ...component,
+        })),
+    placement: { arg: preset.mode === 'snippet' ? 'before' : 'last', target: 'ner' },
+})
+
 export default function BlocklyPipelineBuilder({ preset: presetId, title }) {
     const preset = PRESETS[presetId]
     if (!preset) {
         throw new Error(`Unknown Blockly pipeline builder preset: ${presetId}`)
     }
+    const [state, setState] = useState(() => initialState(preset))
+    const rawCode = generate(state, preset)
+    const prismLang = preset.output === 'ini' ? 'ini' : 'python'
+    const code = Prism.highlight(rawCode, Prism.languages[prismLang], prismLang)
+
     return (
-        <Infobox title={title || 'Interactive pipeline builder'} emoji="🧩">
-            <p>
-                A visual (Blockly) pipeline editor will be embedded here — preset{' '}
-                <InlineCode>{presetId}</InlineCode>, mode <InlineCode>{preset.mode}</InlineCode>,
-                generating <InlineCode>{preset.output}</InlineCode> output. Drag component blocks
-                into the pipeline and copy the generated code.
-            </p>
-            <div
-                data-blockly-mount
-                data-blockly-preset={presetId}
-                style={{ minHeight: preset.height, display: 'none' }}
-            />
-        </Infobox>
+        <PipelineBuilderWidget
+            title={title || 'Interactive pipeline builder'}
+            code={code}
+            rawCode={rawCode}
+            codeLang={prismLang}
+            download={preset.download}
+            onReset={() => setState(initialState(preset))}
+        >
+            <SimpleWorkspace state={state} setState={setState} preset={preset} />
+        </PipelineBuilderWidget>
     )
 }
 

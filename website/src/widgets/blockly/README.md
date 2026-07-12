@@ -19,13 +19,32 @@ The builder follows the same pattern:
     `ssr: false`. Blockly requires `window`/DOM, so the editor must never be
     server-rendered. This is the module registered in `remark.js` and used in
     MDX as `<BlocklyPipelineBuilder preset="..." />`.
--   `src/widgets/blockly/builder.js` — the actual React component (currently a
-    placeholder skeleton; the real editor mounts here).
+-   `src/widgets/blockly/builder.js` — stateful container: owns the workspace
+    state, runs the generators and composes the widget from the parts below.
+-   `src/widgets/blockly/widget.js` — editor-agnostic chrome: header with
+    reset button, a workspace slot (`children`) and the generated-code pane
+    with Prism highlighting, copy and download actions.
+-   `src/widgets/blockly/workspace.js` — `SimpleWorkspace`, a plain-React
+    workspace (component chips with add/remove/reorder/disable/source
+    controls, argument fields in snippet mode). **This is the part the
+    Blockly editor replaces**: a `BlocklyWorkspace` component implementing
+    the same `({ state, setState, preset })` contract (state shape documented
+    in `workspace.js`) can be swapped in via `builder.js` without touching
+    the chrome, generators or presets.
+-   `src/widgets/blockly/generators.js` — pure state → code functions:
+    Python (`spacy.blank`/`spacy.load` + `add_pipe`/`disable_pipe`),
+    `config.cfg` (INI with `factory`/`source`/`frozen_components`) and the
+    single-call `add_pipe` snippet. The Blockly block generators should
+    emit the same output.
+-   `src/widgets/blockly/components.js` — metadata for the built-in
+    component factories (name, description, API link) backing the toolbox
+    today and the Blockly block definitions later.
 -   `src/widgets/blockly/presets.js` — one preset entry **per docs location**
     where the widget is embedded. Each preset documents the location, the
     editor mode, which block categories are exposed, the starting workspace and
     the generated-output format. The MDX pages only pass a `preset` id, so all
     integration-specific configuration stays in one file.
+-   `src/styles/blockly-pipeline.module.sass` — widget styles.
 
 ## Where it appears (integration locations)
 
@@ -39,21 +58,21 @@ The builder follows the same pattern:
 Each MDX location contains a `{/* BLOCKLY-PIPELINE-BUILDER ... */}` comment
 next to the component with the location-specific configuration notes.
 
-## Remaining work to replace the placeholder
+## Remaining work to swap in the Blockly editor
+
+The widget is fully functional with the simple workspace; replacing it
+with the Blockly editor is now contained to one seam:
 
 1. Add dependencies to `website/package.json`: `blockly` (and optionally
    `react-blockly`, or mount Blockly manually via `Blockly.inject` in a
    `useEffect` with cleanup via `workspace.dispose()`).
-2. Define custom blocks + toolbox in `src/widgets/blockly/blocks.js`:
-   pipeline container block, component blocks (one per built-in factory),
-   placement fields (`before`/`after`/`first`/`last`), `disable`/`exclude`
-   mutators, `source=` inputs for sourced components.
-3. Implement generators in `src/widgets/blockly/generators.js`: Python
-   (`spacy.blank`/`spacy.load` + `add_pipe` calls) and `config.cfg` (INI)
-   output. Reuse `Code`/`CodeBlock` components for syntax highlighting and
-   the copy-to-clipboard behavior used by the quickstart widgets.
-4. Wire the `mode` handling in `builder.js` (toolbox filtering, read-only
-   tour mode, output pane format) from the preset entries in `presets.js`.
-5. Keep the component client-only: all Blockly imports must stay inside
-   `builder.js` (loaded via `next/dynamic`), never in `remark.js` or page
-   modules.
+2. Create `src/widgets/blockly/blockly-workspace.js` implementing the
+   `({ state, setState, preset })` contract from `workspace.js`: build the
+   toolbox from `preset.toolbox` + `components.js`, load the initial blocks
+   from `state`, and translate workspace change events back into the shared
+   state shape via `setState`. Use `preset.height` for the editor size.
+3. Swap `SimpleWorkspace` for the new component in `builder.js` (keep
+   `SimpleWorkspace` as the no-JS/fallback option if desired).
+4. Keep the component client-only: all Blockly imports must stay inside
+   `blockly-workspace.js`/`builder.js` (loaded via `next/dynamic`), never
+   in `remark.js` or page modules.

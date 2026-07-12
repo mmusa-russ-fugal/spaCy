@@ -82,7 +82,14 @@ export const PRESETS = {
         workspace: {
             lang: 'en',
             base: null,
-            pipeline: ['tok2vec', 'parser', 'ner'],
+            // Mirrors the config.cfg example below the widget: tok2vec
+            // trained from scratch, parser and ner sourced from a
+            // trained pipeline
+            pipeline: [
+                { name: 'tok2vec' },
+                { name: 'parser', source: 'en_core_web_sm' },
+                { name: 'ner', source: 'en_core_web_sm' },
+            ],
         },
         height: 480,
         download: 'config-excerpt.cfg',
@@ -105,8 +112,8 @@ export const PRESETS = {
         toolbox: ['placement', 'sourcing'],
         workspace: {
             lang: 'en',
-            base: null,
-            pipeline: ['component'],
+            base: 'en_core_web_sm',
+            pipeline: ['entity_ruler'],
         },
         height: 260,
     },
