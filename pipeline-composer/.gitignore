@@ -26,3 +26,7 @@ dist-ssr
 # Python
 __pycache__
 .pytest_cache
+
+# The repo-root .gitignore excludes lib/ (a Python build-artifact rule);
+# re-include our TypeScript source directory.
+!src/lib/
