@@ -2,11 +2,12 @@ import * as Blockly from "blockly/core"
 
 import type { Category } from "@/lib/catalog"
 
+// spaCy website theme colours (website/src/styles/layout.sass)
 export const categoryColours: Record<Category | "pipeline", string> = {
-  pipeline: "#0ea5e9", // sky
-  trainable: "#8b5cf6", // violet
-  rulebased: "#10b981", // emerald
-  utility: "#f59e0b", // amber
+  pipeline: "#09a3d5", // --color-theme-blue  hsl(195 92% 44%)
+  trainable: "#6642d1", // --color-theme-purple hsl(255 61% 54%)
+  rulebased: "#05ad80", // --color-theme-green  hsl(164 94% 35%)
+  utility: "#daa60b", // --color-yellow (dark)  hsl(45 90% 45%)
 }
 
 export const composerTheme = Blockly.Theme.defineTheme("spacy_composer", {
@@ -25,7 +26,7 @@ export const composerTheme = Blockly.Theme.defineTheme("spacy_composer", {
     utility_category: { colour: categoryColours.utility },
   },
   fontStyle: {
-    family: "system-ui, sans-serif",
+    family: "'HK Grotesk', system-ui, sans-serif",
     size: 10.5,
   },
 })

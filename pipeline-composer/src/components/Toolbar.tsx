@@ -61,7 +61,13 @@ export function Toolbar({
 
   return (
     <header className="flex h-12 shrink-0 items-center gap-2 border-b px-3">
-      <span className="mr-1 truncate text-sm font-semibold">
+      <img
+        src="/favicon.svg"
+        alt=""
+        aria-hidden="true"
+        className="size-6 shrink-0"
+      />
+      <span className="mr-1 truncate font-heading text-sm font-semibold tracking-tight">
         spaCy Pipeline Composer
       </span>
 
