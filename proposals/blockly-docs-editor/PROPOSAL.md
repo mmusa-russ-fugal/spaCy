@@ -97,6 +97,7 @@ Notable details that show the concept is real, not cosmetic:
   in-browser Pyodide engine, both sharing one `spacy_runner.py` (pytest-covered).
 
 This is the artifact to **demo or screen-record** and attach to the Discussion.
+It is hosted live at <https://spacy.fugl.dev>.
 
 ### 5b. In-docs integration (proof it fits the site) — PR #4
 
@@ -128,9 +129,9 @@ Grounded in spaCy's actual process (`CONTRIBUTING.md`, issue config):
 1. **Open a GitHub Discussion in the *Ideas* category** — not an issue. Blank
    issues are disabled and feature ideas are explicitly routed to Discussions.
    Use [`DISCUSSION_POST.md`](./DISCUSSION_POST.md).
-2. **Link a live demo.** Deploy the PR #2 composer (or a Netlify preview of the
-   PR #4 branch — the site already has Netlify preview deploys wired up) and/or
-   attach a short screen recording. Show, don't tell.
+2. **Link a live demo.** The PR #2 composer is hosted at
+   <https://spacy.fugl.dev>; link it (and/or a short screen recording) directly
+   in the post. Show, don't tell.
 3. **Offer the integration PR, gauge appetite first.** For a site-architecture
    change, maintainers prefer to weigh in on direction before a large PR lands.
    Point at PR #4 as the reviewable integration and PR #2 as the full-fidelity

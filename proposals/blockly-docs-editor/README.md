@@ -33,7 +33,8 @@ The prototype already exists across the open PRs in this fork:
 
 - **PR #2** — *Add visual pipeline composer built on Blockly* — the standalone
   drag-and-drop app (`pipeline-composer/`) that produces runnable Python, a
-  minimal `config.cfg`, and live displaCy output. This is the reference demo.
+  minimal `config.cfg`, and live displaCy output. This is the reference demo,
+  hosted live at <https://spacy.fugl.dev>.
 - **PR #4** — *Add placeholder skeleton for Blockly pipeline builder on
   website* — the in-docs integration: a working widget embedded at four docs
   locations (`/usage/spacy-101`, `/usage/processing-pipelines`,

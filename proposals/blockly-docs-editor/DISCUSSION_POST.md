@@ -2,8 +2,9 @@
 
 > Paste the body below into a new Discussion at
 > <https://github.com/explosion/spaCy/discussions> under the **Ideas** category.
-> Replace the two `<link>` placeholders with a live demo URL and a link to the
-> full proposal before posting. Keep it short — the demo does the convincing.
+> The live demo is hosted at <https://spacy.fugl.dev>. Fill in the `<link to
+> proposal>` placeholder with a URL to `PROPOSAL.md` (e.g. its GitHub blob URL)
+> before posting. Keep it short — the demo does the convincing.
 
 ---
 
@@ -46,7 +47,7 @@ via `next/dynamic` (`ssr: false`) with a plain-React fallback.
 
 ### It's already prototyped
 
-- **Live demo:** `<link to demo / screen recording>`
+- **Live demo:** <https://spacy.fugl.dev>
 - A standalone composer (drag-and-drop → Python + `config.cfg` + live displaCy
   output) with the component palette generated from spaCy's own `FactoryMeta`,
   so ordering warnings come from spaCy itself.

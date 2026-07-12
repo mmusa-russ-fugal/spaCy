@@ -4,6 +4,11 @@ A ~3-minute walkthrough for demoing the prototype live or recording a screen
 capture to attach to the Discussion post. The goal is to show the "manipulate a
 pipeline, watch the real code change" loop as fast as possible.
 
+The composer is hosted live at <https://spacy.fugl.dev> — for most audiences,
+just open that and skip straight to [The walkthrough](#the-walkthrough). The
+local setup below is for running against uncommitted changes or a specific
+branch.
+
 ## Setup
 
 **Option A — standalone composer (PR #2, full fidelity):**
