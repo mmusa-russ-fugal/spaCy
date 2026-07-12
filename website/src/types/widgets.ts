@@ -43,6 +43,20 @@ export interface QuickstartInstallWidgetProps {
     title?: string
 }
 
+export interface ProjectWidgetProps {
+    title?: string
+    id: string
+    /** Optional repo URL overriding the default projects repo from meta/site.json. */
+    repo?: string
+    children?: ReactNode
+}
+
+export interface QuickstartTrainingWidgetProps {
+    id?: string
+    title?: string
+    download?: string
+}
+
 export interface QuickstartModelsWidgetProps {
     id?: string
     title?: string

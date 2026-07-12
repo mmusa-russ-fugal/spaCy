@@ -3,17 +3,21 @@
  * existing PropTypes declarations (where present) and its destructured
  * arguments (where not).
  */
-import type { ElementType, MouseEventHandler, ReactNode } from 'react'
+import type { CSSProperties, ElementType, MouseEventHandler, ReactNode } from 'react'
 import type {
     AlertVariant,
     ButtonVariant,
+    CodeLang,
     GridCols,
     IconName,
     IconVariant,
     InfoboxVariant,
     StringOrNode,
+    TagVariant,
 } from './common'
 import type { MenuCrumb, SidebarSection } from './nav'
+import type { NavigationItem } from './nav'
+import type { ApiDetails } from './page-context'
 
 export interface LinkProps {
     children: ReactNode
@@ -58,7 +62,7 @@ export interface ButtonProps {
 export interface TagProps {
     spaced?: boolean
     tooltip?: string
-    variant?: string
+    variant?: TagVariant
     children: ReactNode
 }
 
@@ -72,8 +76,10 @@ export interface AlertProps {
 
 export interface InfoboxProps {
     title?: ReactNode
+    emoji?: string
     id?: string
     variant?: InfoboxVariant
+    list?: boolean
     className?: string
     children: ReactNode
 }
@@ -81,6 +87,8 @@ export interface InfoboxProps {
 export interface AccordionProps {
     title?: string
     id?: string
+    expanded?: boolean
+    spaced?: boolean
     children: ReactNode
 }
 
@@ -95,9 +103,11 @@ export interface CardProps {
 }
 
 export interface GridProps {
-    cols?: GridCols
+    /** `null` is tolerated at runtime (see LandingBanner) and falls back to 1 column. */
+    cols?: GridCols | null
     narrow?: boolean
     gutterBottom?: boolean
+    style?: CSSProperties
     className?: string
     children?: ReactNode
 }
@@ -236,13 +246,10 @@ export interface InlineCodeProps {
 }
 
 export interface TypeAnnotationProps {
-    lang?: CodeLangUnion
+    lang?: CodeLang
     link?: boolean
     children?: ReactNode
 }
-
-// Kept local to avoid a circular import with common.ts's broader CodeLang alias.
-type CodeLangUnion = 'python' | 'bash' | 'json' | 'yaml' | 'markdown' | 'r' | string
 
 export interface LiProps {
     children?: ReactNode
@@ -286,7 +293,7 @@ export interface SidebarProps {
 
 export interface NavigationProps {
     title: string
-    items?: { text: string; url: string }[]
+    items?: NavigationItem[]
     section?: string
     search?: ReactNode
     alert?: ReactNode
@@ -294,18 +301,18 @@ export interface NavigationProps {
 }
 
 export interface SearchProps {
-    id?: string
     placeholder?: string
 }
 
+/**
+ * Note: seo.js also declares PropTypes for `meta`, `keywords` and `bodyClass`,
+ * but the component never receives them — those are stale and omitted here.
+ */
 export interface SEOProps {
     description?: string
-    meta?: unknown[]
-    keywords?: string[]
     title?: string
     section?: string
     sectionTitle?: string
-    bodyClass?: string
     nightly?: boolean
     legacy?: boolean
     lang?: string
@@ -319,15 +326,102 @@ export interface TitleProps {
     image?: string
     version?: string
     id?: string
-    apiDetails?: unknown
+    apiDetails?: ApiDetails
     children?: ReactNode
+    [key: string]: unknown
 }
 
 export interface GitHubCodeProps {
     url: string
-    lang?: string
+    lang?: CodeLang
     errorMsg?: string
     className?: string
+}
+
+/** Props for the `Code` class component in code.js (also accepted by codeBlock.js/codeDynamic.js). */
+export interface CodeProps {
+    lang?: CodeLang
+    title?: string
+    /** MDX attributes arrive as strings, hence the stringly booleans. */
+    executable?: boolean | 'true' | 'false' | null
+    github?: string
+    prompt?: string
+    highlight?: string
+    wrap?: boolean
+    className?: string
+    children?: ReactNode
+}
+
+export interface JuniperClassNames {
+    cell?: string
+    input?: string
+    button?: string
+    output?: string
+}
+
+export interface JuniperProps {
+    children?: string
+    repo: string
+    branch?: string
+    url?: string
+    serverSettings?: Record<string, unknown>
+    kernelType?: string
+    lang?: string
+    theme?: string
+    isolateCells?: boolean
+    useBinder?: boolean
+    useStorage?: boolean
+    storageKey?: string
+    storageExpire?: number
+    debug?: boolean
+    msgButton?: string
+    msgLoading?: string
+    msgError?: string
+    classNames?: JuniperClassNames
+}
+
+export interface LandingHeaderProps {
+    nightly?: boolean
+    legacy?: boolean
+    style?: CSSProperties
+    children?: ReactNode
+}
+
+export interface LandingGridProps {
+    cols?: GridCols
+    blocks?: boolean
+    style?: CSSProperties
+    children?: ReactNode
+}
+
+export interface LandingCardProps {
+    title?: string
+    button?: string
+    url?: string
+    children?: ReactNode
+}
+
+export interface LandingButtonProps {
+    to?: string
+    small?: boolean
+    children?: ReactNode
+}
+
+export interface LandingDemoProps {
+    title?: string
+    children?: ReactNode
+}
+
+export interface LandingBannerProps {
+    title?: string
+    label?: string
+    to?: string
+    button?: string
+    small?: boolean
+    background?: string
+    backgroundImage?: string
+    color?: string
+    children?: ReactNode
 }
 
 /** A single option row rendered within a Quickstart group, e.g. an OS/platform choice. */

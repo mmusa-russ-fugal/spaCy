@@ -3,6 +3,7 @@
  */
 import type { ReactNode } from 'react'
 import type {
+    LicenseInfo,
     ModelCompatibility,
     RawModelMeta,
     UniverseCategory,
@@ -31,7 +32,7 @@ export interface ModelEntryProps {
     repo: string
     compatibility: ModelCompatibility
     hasExamples?: boolean
-    licenses: Record<string, { id: string; url: string }>
+    licenses: Record<string, LicenseInfo>
     prereleases?: boolean
 }
 
@@ -44,7 +45,8 @@ export interface FormattedModelMeta {
     components?: string[]
     notes?: string
     description?: string
-    sources?: ReactNode
+    /** Passed through unformatted; rendered later via formatSources(). */
+    sources?: RawModelMeta['sources']
     author?: string
     url?: string
     license?: string
@@ -53,8 +55,6 @@ export interface FormattedModelMeta {
     accuracy: { label: string; value: string; help?: string }[]
     download_link: ReactNode
 }
-
-export type { RawModelMeta }
 
 export interface UniverseContentProps {
     content?: UniverseResource[]

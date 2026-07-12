@@ -45,7 +45,9 @@ export type ThemeName = 'blue' | 'green' | 'purple' | 'nightly' | 'legacy'
 
 export type GridCols = 1 | 2 | 3 | 4
 
-export type CodeLang = 'python' | 'bash' | 'json' | 'yaml' | 'markdown' | 'r' | string
+// The `string & {}` keeps the literal members visible to autocomplete instead of
+// letting the union collapse to plain `string`.
+export type CodeLang = 'python' | 'bash' | 'json' | 'yaml' | 'markdown' | 'r' | 'cli' | (string & {})
 
 /** A value that can be either a plain string or pre-rendered React content. */
 export type StringOrNode = string | ReactNode

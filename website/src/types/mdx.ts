@@ -2,7 +2,7 @@
  * Types for markdown/MDX rendering (components/markdownToReact.js,
  * markdownToReactDynamic.js, htmlToReact.js) and meta/dynamicMeta.mjs.
  */
-import type { ReactNode } from 'react'
+import type { ElementType } from 'react'
 
 /** Props for components/markdownToReact.js and its dynamic wrapper. */
 export interface MarkdownToReactProps {
@@ -30,4 +30,4 @@ export interface DynamicMeta {
 }
 
 /** A map of tag/component names to their React renderer, see src/remark.js `remarkComponents`. */
-export type RemarkComponents = Record<string, ((props: { children?: ReactNode }) => ReactNode) | unknown>
+export type RemarkComponents = Record<string, ElementType>
