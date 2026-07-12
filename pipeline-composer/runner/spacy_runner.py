@@ -24,6 +24,13 @@ except ImportError:  # pragma: no cover - spaCy 3.7.x registers at import
 
 MAX_TEXT_LENGTH = 10_000
 
+# spaCy website primary font stack (website/src/styles/layout.sass --font-primary)
+# so displaCy renders in the same font as the docs instead of displaCy's Arial default.
+DISPLACY_FONT = (
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, "
+    "sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'"
+)
+
 _PIPELINE_CACHE = {}
 _PIPELINE_CACHE_ORDER = []
 _PIPELINE_CACHE_SIZE = 4
@@ -161,13 +168,17 @@ def _displacy_payload(doc, warnings):
     payload = {}
     try:
         if doc.ents:
+            # Entity font is inherited from the container (see ResultsView iframe).
             payload["ent"] = displacy.render(doc, style="ent", page=False)
     except Exception as err:  # pragma: no cover - defensive
         warnings.append(f"displaCy ent rendering failed: {err}")
     try:
         if doc.has_annotation("DEP") and doc.has_annotation("SENT_START"):
             payload["dep"] = displacy.render(
-                doc, style="dep", page=False, options={"compact": True}
+                doc,
+                style="dep",
+                page=False,
+                options={"compact": True, "font": DISPLACY_FONT},
             )
     except Exception as err:  # pragma: no cover - defensive
         warnings.append(f"displaCy dep rendering failed: {err}")

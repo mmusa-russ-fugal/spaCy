@@ -2,8 +2,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import type { RunResult } from "@/runtime/types"
 
+// spaCy website primary font stack (website/src/styles/layout.sass --font-primary)
+const DISPLACY_FONT =
+  "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'"
+
 function DisplacyFrame({ html, title }: { html: string; title: string }) {
-  const doc = `<!doctype html><meta charset="utf-8"><body style="margin:8px;font-family:system-ui,sans-serif;overflow-x:auto">${html}</body>`
+  // Mirror how the docs render displaCy: site font, dark-on-white, entities at
+  // the website's 1.35rem sizing (website/src/styles/layout.sass .entities).
+  const doc = `<!doctype html><meta charset="utf-8"><style>
+    body { margin: 12px; overflow-x: auto; color: hsl(213 15% 12%); font-family: ${DISPLACY_FONT}; }
+    .entities { font-size: 1.15rem; }
+    .displacy { color: hsl(213 15% 12%); }
+  </style><body>${html}</body>`
   return (
     <iframe
       sandbox=""
