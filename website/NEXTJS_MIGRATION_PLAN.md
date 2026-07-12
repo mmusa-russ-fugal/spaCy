@@ -108,3 +108,38 @@ react-github-btn (override), classnames, prop-types, parse-numeric-range
 3. `npm run dev`, spot-check with a browser (Playwright/Chromium available): `/`, `/usage`, `/usage/spacy-101`, `/usage/training` (quickstart widget), `/models/en`, `/universe` + one `/universe/project/*`, `/api/doc`, and the 404 page. Console free of hydration errors.
 4. Netlify deploy preview per phase; verify redirects from root `netlify.toml` still apply.
 5. Git: develop on `claude/nextjs-migration-plan-ym9zl3`, one commit (or a few) per phase, push with `git push -u origin claude/nextjs-migration-plan-ym9zl3`.
+
+## Production rollout for a high-traffic site (review addendum)
+
+The phases above are technically sound; this section adds the operational layer needed
+because the site serves many daily active users. The deployment model keeps baseline risk
+low — a fully static export on Netlify means atomic deploys and one-click rollback, with no
+server or downtime window — so the remaining DAU-facing risks are stale service workers,
+silently corrupted pages, and degraded search/SEO. Address them as follows:
+
+1. **Bake time between phases.** Let each phase sit in production for several days before
+   starting the next — mandatory after Phase 1 (SW removal) and Phase 3 (React 19 / MDX v3).
+   During the bake, watch: Netlify 404 rate, Plausible traffic/page-view patterns on the
+   top docs pages, and Google Search Console coverage/CWV reports. The site changes only a
+   few times a year upstream, so long bakes cost nothing in merge-conflict risk.
+2. **Full-corpus HTML diff for Phase 3, not spot checks.** Phase 3 changes the rendering
+   pipeline for every page; the file-list diff catches missing pages but not corrupted
+   ones. Diff the normalized HTML of the entire old `out/` vs new `out/` (strip build
+   hashes/asset URLs first) and review every structural change. Spot checks remain the
+   verification bar for the other phases.
+3. **Algolia DocSearch check after Phase 3.** Site search depends on the DocSearch
+   crawler's selectors matching the emitted HTML (`src/components/search.js`). After
+   Phase 3, confirm heading/anchor IDs and the markup structure the crawler targets are
+   unchanged (the full-corpus diff in #2 surfaces this); if they changed, update the
+   crawler config and trigger a re-crawl before calling the phase done.
+4. **Kill-switch retention.** Browsers only fetch the Phase 1 kill-switch SW when a
+   visitor returns, so infrequent visitors may take months to be un-stranded. If Phase 5
+   ships, the Serwist SW replaces it — fine. If Phase 5 is **skipped**, keep the
+   kill-switch `public/sw.js` deployed for at least 6–12 months; do NOT delete it early,
+   or late-returning visitors keep a permanently stale cache.
+5. **Rollback rule.** Any regression: Netlify "restore previous deploy" — instant and safe
+   for every phase, with one exception: rolling back **across Phase 1** re-registers the
+   old next-pwa SW, so the kill switch must be re-shipped when rolling forward again.
+6. **Performance baseline.** Before Phase 1, record bundle sizes (`next build` output) and
+   Lighthouse/CWV for `/`, `/usage/spacy-101`, and `/api/doc`; re-measure after Phases 3
+   and 4. React 19 + Next 16 should be neutral-to-better — verify rather than assume.
