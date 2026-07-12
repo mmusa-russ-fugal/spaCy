@@ -143,3 +143,14 @@ silently corrupted pages, and degraded search/SEO. Address them as follows:
 6. **Performance baseline.** Before Phase 1, record bundle sizes (`next build` output) and
    Lighthouse/CWV for `/`, `/usage/spacy-101`, and `/api/doc`; re-measure after Phases 3
    and 4. React 19 + Next 16 should be neutral-to-better — verify rather than assume.
+
+## How this migration sequences with the other open PRs
+
+See [`PR_ORDER_OF_OPERATIONS.md`](../PR_ORDER_OF_OPERATIONS.md) at the repo root
+for the full recommendation across all open PRs. The short version as it affects
+this plan: execute Phases 0–4 **before** swapping the real Blockly editor into
+the docs widget (PR #4's remaining work, which should port from the standalone
+composer in PR #2) and before the JS → TSX conversion of `website/src` (PR #5's
+follow-up) — Phase 3 churns the `remark.js`/MDX seam the widget plugs into, and
+converting components mid-migration would touch the same files twice. Re-verify
+the four `<BlocklyPipelineBuilder />` embeds as part of the Phase 3 verification.
