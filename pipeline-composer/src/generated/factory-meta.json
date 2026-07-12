@@ -1,0 +1,245 @@
+{
+  "spacyVersion": "3.8.14",
+  "factories": [
+    {
+      "name": "tok2vec",
+      "requires": [],
+      "assigns": [
+        "doc.tensor"
+      ],
+      "retokenizes": false,
+      "defaultConfig": {}
+    },
+    {
+      "name": "tagger",
+      "requires": [],
+      "assigns": [
+        "token.tag"
+      ],
+      "retokenizes": false,
+      "defaultConfig": {
+        "overwrite": false,
+        "neg_prefix": "!",
+        "label_smoothing": 0.0
+      }
+    },
+    {
+      "name": "morphologizer",
+      "requires": [],
+      "assigns": [
+        "token.morph",
+        "token.pos"
+      ],
+      "retokenizes": false,
+      "defaultConfig": {
+        "overwrite": true,
+        "extend": false,
+        "label_smoothing": 0.0
+      }
+    },
+    {
+      "name": "parser",
+      "requires": [],
+      "assigns": [
+        "doc.sents",
+        "token.dep",
+        "token.head",
+        "token.is_sent_start"
+      ],
+      "retokenizes": false,
+      "defaultConfig": {
+        "moves": null,
+        "update_with_oracle_cut_size": 100,
+        "learn_tokens": false,
+        "min_action_freq": 30
+      }
+    },
+    {
+      "name": "ner",
+      "requires": [],
+      "assigns": [
+        "doc.ents",
+        "token.ent_iob",
+        "token.ent_type"
+      ],
+      "retokenizes": false,
+      "defaultConfig": {
+        "moves": null,
+        "update_with_oracle_cut_size": 100,
+        "incorrect_spans_key": null
+      }
+    },
+    {
+      "name": "senter",
+      "requires": [],
+      "assigns": [
+        "token.is_sent_start"
+      ],
+      "retokenizes": false,
+      "defaultConfig": {
+        "overwrite": false
+      }
+    },
+    {
+      "name": "sentencizer",
+      "requires": [],
+      "assigns": [
+        "doc.sents",
+        "token.is_sent_start"
+      ],
+      "retokenizes": false,
+      "defaultConfig": {
+        "punct_chars": null,
+        "overwrite": false
+      }
+    },
+    {
+      "name": "lemmatizer",
+      "requires": [],
+      "assigns": [
+        "token.lemma"
+      ],
+      "retokenizes": false,
+      "defaultConfig": {
+        "model": null,
+        "mode": "rule",
+        "overwrite": false
+      }
+    },
+    {
+      "name": "trainable_lemmatizer",
+      "requires": [],
+      "assigns": [
+        "token.lemma"
+      ],
+      "retokenizes": false,
+      "defaultConfig": {
+        "backoff": "orth",
+        "min_tree_freq": 3,
+        "overwrite": false,
+        "top_k": 1
+      }
+    },
+    {
+      "name": "attribute_ruler",
+      "requires": [],
+      "assigns": [],
+      "retokenizes": false,
+      "defaultConfig": {
+        "validate": false
+      }
+    },
+    {
+      "name": "entity_ruler",
+      "requires": [],
+      "assigns": [
+        "doc.ents",
+        "token.ent_iob",
+        "token.ent_type"
+      ],
+      "retokenizes": false,
+      "defaultConfig": {
+        "phrase_matcher_attr": null,
+        "validate": false,
+        "overwrite_ents": false,
+        "ent_id_sep": "||"
+      }
+    },
+    {
+      "name": "span_ruler",
+      "requires": [],
+      "assigns": [
+        "doc.spans"
+      ],
+      "retokenizes": false,
+      "defaultConfig": {
+        "spans_key": "ruler",
+        "spans_filter": null,
+        "annotate_ents": false,
+        "phrase_matcher_attr": null,
+        "validate": false,
+        "overwrite": true
+      }
+    },
+    {
+      "name": "textcat",
+      "requires": [],
+      "assigns": [
+        "doc.cats"
+      ],
+      "retokenizes": false,
+      "defaultConfig": {
+        "threshold": 0.0
+      }
+    },
+    {
+      "name": "textcat_multilabel",
+      "requires": [],
+      "assigns": [
+        "doc.cats"
+      ],
+      "retokenizes": false,
+      "defaultConfig": {
+        "threshold": 0.5
+      }
+    },
+    {
+      "name": "spancat",
+      "requires": [],
+      "assigns": [
+        "doc.spans"
+      ],
+      "retokenizes": false,
+      "defaultConfig": {
+        "threshold": 0.5,
+        "spans_key": "sc",
+        "max_positive": null
+      }
+    },
+    {
+      "name": "merge_entities",
+      "requires": [
+        "doc.ents",
+        "token.ent_iob",
+        "token.ent_type"
+      ],
+      "assigns": [],
+      "retokenizes": true,
+      "defaultConfig": {}
+    },
+    {
+      "name": "merge_noun_chunks",
+      "requires": [
+        "token.dep",
+        "token.pos",
+        "token.tag"
+      ],
+      "assigns": [],
+      "retokenizes": true,
+      "defaultConfig": {}
+    },
+    {
+      "name": "token_splitter",
+      "requires": [],
+      "assigns": [],
+      "retokenizes": true,
+      "defaultConfig": {
+        "min_length": 25,
+        "split_length": 10
+      }
+    },
+    {
+      "name": "doc_cleaner",
+      "requires": [],
+      "assigns": [],
+      "retokenizes": false,
+      "defaultConfig": {
+        "attrs": {
+          "tensor": null,
+          "_.trf_data": null
+        },
+        "silent": true
+      }
+    }
+  ]
+}
