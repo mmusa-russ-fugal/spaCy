@@ -9,9 +9,9 @@ export function WarningsPanel({ warnings }: { warnings: ValidationWarning[] }) {
       {warnings.map((w, i) => (
         <div key={i} className="flex items-start gap-1.5">
           {w.level === "warning" ? (
-            <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0 text-amber-600" />
+            <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0 text-warning-foreground dark:text-warning" />
           ) : (
-            <InfoIcon className="mt-0.5 size-3.5 shrink-0 text-sky-600" />
+            <InfoIcon className="mt-0.5 size-3.5 shrink-0 text-primary" />
           )}
           <span className="text-muted-foreground">{w.message}</span>
         </div>

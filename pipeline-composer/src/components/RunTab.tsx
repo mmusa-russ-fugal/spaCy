@@ -132,7 +132,7 @@ export function RunTab({ spec }: { spec: PipelineSpec | null }) {
       {pyodideBlockers.map((msg, i) => (
         <div
           key={i}
-          className="shrink-0 rounded-md border border-amber-300 bg-amber-50 p-2 text-xs text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200"
+          className="shrink-0 rounded-md border border-warning/40 bg-warning/10 p-2 text-xs text-warning-foreground dark:text-warning"
         >
           {msg}
         </div>

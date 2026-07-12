@@ -39,7 +39,7 @@ export function ResultsView({ result }: { result: RunResult }) {
       </div>
 
       {result.warnings.length > 0 && (
-        <div className="space-y-1 rounded-md border border-amber-300 bg-amber-50 p-2 text-xs text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+        <div className="space-y-1 rounded-md border border-warning/40 bg-warning/10 p-2 text-xs text-warning-foreground dark:text-warning">
           {result.warnings.map((w, i) => (
             <div key={i}>{w}</div>
           ))}
