@@ -63,6 +63,13 @@ describe("specFromWorkspace", () => {
     expect(issues).toEqual([])
   })
 
+  it("flags a component name that is not identifier-safe", () => {
+    const broken = structuredClone(rulerWorkspace) as Record<string, any>
+    broken.blocks.blocks[0].inputs.COMPONENTS.block.fields.NAME = "bad name]"
+    const { issues } = specFromWorkspace(broken)
+    expect(issues.some((i) => i.message.includes("Invalid component name"))).toBe(true)
+  })
+
   it("flags invalid pattern JSON as an issue", () => {
     const broken = structuredClone(rulerWorkspace) as Record<string, any>
     broken.blocks.blocks[0].inputs.COMPONENTS.block.next.block.fields.F_PATTERNS =

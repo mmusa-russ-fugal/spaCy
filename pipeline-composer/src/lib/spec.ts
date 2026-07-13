@@ -51,6 +51,13 @@ export function fieldName(key: string): string {
   return `F_${key.toUpperCase()}`
 }
 
+/**
+ * Component names become both Python `name=` arguments and `[components.<name>]`
+ * INI section headers in config.cfg, so they must be identifier-safe. spaCy's
+ * own component names follow this shape.
+ */
+const VALID_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/
+
 function asBool(raw: unknown): boolean {
   return raw === true || raw === "TRUE" || raw === "true"
 }
@@ -102,6 +109,12 @@ function componentFromBlock(
   const meta = factoryMeta[factory]
   const fields = block.fields ?? {}
   const rawName = typeof fields.NAME === "string" ? fields.NAME.trim() : ""
+  if (rawName && !VALID_NAME.test(rawName)) {
+    issues.push({
+      blockId: block.id,
+      message: `Invalid component name "${rawName}" — use letters, digits, and underscores only (must start with a letter or underscore).`,
+    })
+  }
   const config: Record<string, unknown> = {}
   let patterns: unknown[] | undefined
 
