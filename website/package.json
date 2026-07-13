@@ -60,5 +60,7 @@
     "unist-util-visit": "^4.1.1",
     "ws": "^8.11.0"
   },
-  "engine": 18
+  "engines": {
+    "node": ">=22.0.0"
+  }
 }
