@@ -150,10 +150,16 @@ class ComposerHandler(BaseHTTPRequestHandler):
             payload = json.loads(self.rfile.read(length).decode("utf-8"))
             spec = payload["spec"]
             text = payload.get("text", "")
-        except (json.JSONDecodeError, KeyError, UnicodeDecodeError):
+        except (json.JSONDecodeError, KeyError, TypeError, UnicodeDecodeError):
             self._send_json({"error": "Invalid JSON request body."}, status=400)
             return
-        base = (spec or {}).get("base") or {}
+        if not isinstance(spec, dict):
+            self._send_json({"error": '"spec" must be a JSON object.'}, status=400)
+            return
+        base = spec.get("base") or {}
+        if not isinstance(base, dict):
+            self._send_json({"error": '"spec.base" must be a JSON object.'}, status=400)
+            return
         if base.get("type") == "model" and not _valid_base_name(base.get("name")):
             self._send_json(
                 {"error": "Base model must be a bare installed-model name."},
