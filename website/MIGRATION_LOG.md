@@ -16,9 +16,12 @@ Toolchain version pins, plus the one source fix required to make the existing
 build green on the newly-pinned Node 22. This phase establishes the Node/Python
 versions that every later phase builds on (Next 16 requires Node ≥ 20.9; Node 20
 is EOL Apr 2026, so we target Node 22 LTS). The Python 3.12 pin also preps for
-later Python-based tooling. The build output (`website/out/`) is byte-for-byte
+later Python-based tooling. The rendered HTML output (`website/out/`) is
 equivalent to before — the source fix only changes *how* `meta/site.json` is
-loaded, not its values.
+loaded, not its values. Build artifacts are not byte-for-byte identical: the
+site config now reaches the client bundle through a generated JS module instead
+of an inlined webpack JSON module, so chunk contents/hashes under
+`website/out/_next/` differ even though rendered pages match.
 
 ### What changed
 
@@ -62,6 +65,14 @@ of `site.json` — valid everywhere, no attribute needed:
 - **`website/.gitignore`**: ignores the generated `meta/site.generated.mjs`
   (same pattern as the existing `quickstart-training-generator.js`).
 
+**Follow-up (temporary indirection).** The generated-module mirror is only
+needed because Next 13.0.2's SWC parser doesn't yet accept `with { type: 'json' }`.
+Once a later phase upgrades to Next 14+ (Track B.6/B.7), SWC will support `with`,
+and `meta/dynamicMeta.mjs` should switch back to importing `meta/site.json`
+directly via `import site from './site.json' with { type: 'json' }`, at which
+point `setup/generateSiteModule.mjs`, its `setup.sh` invocation, and the
+`meta/site.generated.mjs` gitignore entry can all be deleted.
+
 ### How to verify
 
 Confirm the toolchain and a clean build (verified on Node v22.22.3 /
@@ -90,6 +101,14 @@ Docker image (optional, builds Node 22 + Python 3.12 toolchain):
 cd website
 docker build -t spacy-website-toolchain .
 ```
+
+### Known risks
+
+- **Netlify build image / `runtime.txt` 3.8 → 3.12.** `website/netlify.toml`
+  publishes `website/out`, and `runtime.txt` is Netlify's Python version pin.
+  Whether Netlify's build image accepts Python 3.12 via `runtime.txt` (older
+  images only accept 3.8) can't be verified from the repo alone — confirm with
+  a Netlify deploy preview before merging this to production.
 
 ### Rollback
 
