@@ -109,10 +109,11 @@ function componentFromBlock(
   const meta = factoryMeta[factory]
   const fields = block.fields ?? {}
   const rawName = typeof fields.NAME === "string" ? fields.NAME.trim() : ""
-  if (rawName && !VALID_NAME.test(rawName)) {
+  const nameIsValid = !rawName || VALID_NAME.test(rawName)
+  if (!nameIsValid) {
     issues.push({
       blockId: block.id,
-      message: `Invalid component name "${rawName}" — use letters, digits, and underscores only (must start with a letter or underscore).`,
+      message: `Invalid component name "${rawName}" — use letters, digits, and underscores only (must start with a letter or underscore). Falling back to "${factory}".`,
     })
   }
   const config: Record<string, unknown> = {}
@@ -158,8 +159,8 @@ function componentFromBlock(
 
   return {
     factory,
-    name: rawName || factory,
-    explicitName: Boolean(rawName),
+    name: nameIsValid && rawName ? rawName : factory,
+    explicitName: nameIsValid && Boolean(rawName),
     config,
     patterns,
     blockId: block.id,

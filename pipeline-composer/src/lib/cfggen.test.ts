@@ -29,4 +29,13 @@ describe("generateConfig", () => {
     expect(cfg).toContain("[components.my_ner]")
     expect(cfg).toContain('pipeline = ["tok2vec","tagger","my_ner"]')
   })
+
+  it("falls back to the factory name instead of emitting a malformed section for an invalid name", () => {
+    const broken = structuredClone(rulerWorkspace) as Record<string, any>
+    broken.blocks.blocks[0].inputs.COMPONENTS.block.fields.NAME = "bad name]"
+    const { spec } = specFromWorkspace(broken)
+    const cfg = generateConfig(spec!)
+    expect(cfg).not.toContain("bad name]")
+    expect(cfg).toContain("[components.sentencizer]")
+  })
 })
