@@ -8,15 +8,7 @@ import remarkPlugins from '../plugins/index.mjs'
 
 import recordSection from '../meta/recordSections'
 import { sidebarUsageFlat } from '../meta/sidebarFlat'
-
-type ApiDetails = {
-    stringName: string | null
-    baseClass: {
-        title: string
-        slug: string
-    } | null
-    trainable: string | null
-}
+import type { ApiDetails } from '../src/types/page-context'
 
 export type PropsPageBase = {
     /**
@@ -115,7 +107,9 @@ export const getStaticProps: GetStaticProps<PropsPage, ParsedUrlQuery> = async (
                   slug: mdx.frontmatter.api_base_class,
               }
             : null,
-        trainable: mdx.frontmatter.api_trainable ?? null,
+        // next-mdx-remote types every frontmatter value as `string`, but YAML
+        // parses `api_trainable` as a boolean at runtime.
+        trainable: (mdx.frontmatter.api_trainable as unknown as boolean | undefined) ?? null,
     }
 
     const slug = `/${args.params.listPathPage.join('/')}`

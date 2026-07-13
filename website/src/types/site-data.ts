@@ -27,7 +27,12 @@ export interface SiteSection {
     theme: string
 }
 
-/** Shape of `meta/site.json`. */
+/**
+ * Shape of `meta/site.json`. Intentionally omits `nightly`: it is not stored in
+ * `site.json` but derived at build time in `meta/dynamicMeta.mjs` (exported as
+ * `nightly` from `nightlyBranches`). Code reaching for `siteMetadata.nightly`
+ * (e.g. `templates/models.js`) should use that dynamic meta instead.
+ */
 export interface SiteMetadata {
     title: string
     description: string

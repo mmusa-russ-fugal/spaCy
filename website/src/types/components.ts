@@ -85,6 +85,11 @@ export interface InfoboxProps {
     children: ReactNode
 }
 
+export interface AsideProps {
+    title?: string
+    children: ReactNode
+}
+
 export interface AccordionProps {
     title?: string
     id?: string
@@ -148,6 +153,43 @@ export interface HeadlineProps {
     permalink?: boolean
     className?: string
     children?: ReactNode
+}
+
+/** `H1`-`H5` wrap `Headline`, forwarding any extra props (see `HeadlineProps`). */
+export interface H1Props {
+    Component?: ElementType
+    className?: string
+    [key: string]: unknown
+}
+
+export interface H2Props {
+    className?: string
+    [key: string]: unknown
+}
+
+export interface H3Props {
+    className?: string
+    [key: string]: unknown
+}
+
+export interface H4Props {
+    className?: string
+    [key: string]: unknown
+}
+
+export interface H5Props {
+    className?: string
+    [key: string]: unknown
+}
+
+export interface PProps {
+    children?: ReactNode
+    [key: string]: unknown
+}
+
+export interface LabelProps {
+    className?: string
+    [key: string]: unknown
 }
 
 export interface InlineListProps {
@@ -241,6 +283,17 @@ export interface TdProps {
     [key: string]: unknown
 }
 
+export interface ThProps {
+    children?: ReactNode
+    [key: string]: unknown
+}
+
+/** Rotated table head, rendered as a child of `Th`. */
+export interface TxProps {
+    children?: ReactNode
+    [key: string]: unknown
+}
+
 export interface InlineCodeProps {
     wrap?: boolean
     className?: string
@@ -251,6 +304,16 @@ export interface TypeAnnotationProps {
     lang?: CodeLang
     link?: boolean
     children?: ReactNode
+}
+
+export interface UlProps {
+    children?: ReactNode
+    [key: string]: unknown
+}
+
+export interface OlProps {
+    children?: ReactNode
+    [key: string]: unknown
 }
 
 export interface LiProps {

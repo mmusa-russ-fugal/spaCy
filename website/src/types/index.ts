@@ -1,9 +1,9 @@
 /**
  * Barrel for the website's TypeScript type definitions, staged ahead of the
  * planned migration of `website/src` to `.tsx`. These types describe the
- * existing runtime shapes (component props, JSON data, per-page context) and
- * are not yet imported by any source file; they exist as a reference for
- * converting components one at a time.
+ * existing runtime shapes (component props, JSON data, per-page context). They
+ * are largely a reference for converting components one at a time, though a few
+ * (e.g. `ApiDetails`) are already imported directly by converted pages.
  */
 export * from './common'
 export * from './util'

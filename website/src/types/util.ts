@@ -23,7 +23,10 @@ export type ArrayToObjFn = <T extends Record<string, unknown>>(
     key: string
 ) => Record<string, T>
 
-/** Abbreviate a large number, e.g. `14249930` -> `14.2m`. */
-export type AbbrNumFn = (num?: number | string, fixed?: number) => string
+/**
+ * Abbreviate a large number, e.g. `14249930` -> `14.2m`. Returns the number `0`
+ * (not a string) when given `null` or `0`.
+ */
+export type AbbrNumFn = (num?: number, fixed?: number) => string | 0
 
 export type ChunkArrayFn = <T>(arr: T[], chunkSize: number) => T[][]

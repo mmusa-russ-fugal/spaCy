@@ -10,18 +10,23 @@ export interface NextPageRef {
     slug: string
 }
 
-/** API cross-reference details rendered beside a page title (`components/title.js`). */
+/**
+ * API cross-reference details rendered beside a page title (`components/title.js`).
+ * Built in `pages/[...listPathPage].tsx` with explicit `null` fallbacks, so every
+ * field is nullable rather than merely optional.
+ */
 export interface ApiDetails {
-    stringName?: string
-    baseClass?: { slug: string; title: string }
-    trainable?: boolean
+    stringName: string | null
+    baseClass: { slug: string; title: string } | null
+    trainable: boolean | null
     [key: string]: unknown
 }
 
 /** Extra metadata for a models-section index page (`templates/models.js`). */
 export interface ModelsPageMeta {
-    models: string[]
-    hasExamples?: boolean
+    models: string[] | null
+    example?: string | null
+    hasExamples?: boolean | null
     [key: string]: unknown
 }
 
@@ -31,15 +36,16 @@ export interface DocsPageContext {
     slug: string
     title: string
     section?: string
-    sectionTitle?: string
-    teaser?: string
+    /** Producing pages emit explicit `null` (via `getStaticProps`) when absent. */
+    sectionTitle?: string | null
+    teaser?: string | null
     source?: string
     tag?: string
     isIndex?: boolean
-    next?: NextPageRef
+    next?: NextPageRef | null
     /** `[headingText, headingId]` tuples used to build the in-page menu. */
     menu?: [string, string][]
-    theme?: string
+    theme?: string | null
     version?: string
     apiDetails?: ApiDetails
     searchExclude?: boolean
