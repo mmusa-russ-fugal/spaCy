@@ -12,7 +12,10 @@ import type { RunRequest, RunResult } from "@/runtime/types"
 const PYODIDE_VERSION = "0.26.4"
 const PYODIDE_CDN = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/pyodide.mjs`
 
-const WHEEL_BASE = "https://raw.githubusercontent.com/liu-nlp/spacy-pyodide/main"
+// Pinned to a specific commit (not @main) so the exact wasm code shipped to
+// the user's browser cannot change out from under this repo.
+const WHEEL_COMMIT = "3e52716a25e6833de730a7de1e9dd021a59dde17"
+const WHEEL_BASE = `https://raw.githubusercontent.com/liu-nlp/spacy-pyodide/${WHEEL_COMMIT}`
 const WHEELS = [
   "cymem-2.0.9a2-cp312-cp312-pyodide_2024_0_wasm32.whl",
   "murmurhash-1.0.10-cp312-cp312-pyodide_2024_0_wasm32.whl",
