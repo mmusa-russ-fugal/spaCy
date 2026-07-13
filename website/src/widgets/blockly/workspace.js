@@ -210,7 +210,7 @@ function SnippetControls({ state, setState, updateComponent }) {
                     Target:{' '}
                     <input
                         type="text"
-                        value={placement.target || 'ner'}
+                        value={placement.target}
                         onChange={({ target }) => setPlacement({ target: target.value })}
                         aria-label="Component to insert before or after"
                     />

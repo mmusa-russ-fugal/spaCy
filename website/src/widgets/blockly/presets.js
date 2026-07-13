@@ -26,9 +26,10 @@ export const PRESETS = {
      * Sits directly below the <Pipelines101 /> include and its pipeline
      * diagram. First-contact audience: the workspace mirrors the
      * en_core_web_sm pipeline from the diagram and is locked down (no
-     * toolbox, drag-to-reorder only) so readers can poke at the concept
-     * without being dropped into a full editor. Links out to
-     * /usage/processing-pipelines for the editable version.
+     * toolbox, no reordering, no add/remove) so readers can poke at the
+     * concept — disabling components is still available — without being
+     * dropped into a full editor. Links out to /usage/processing-pipelines
+     * for the editable version.
      */
     'spacy-101': {
         location: '/usage/spacy-101#pipelines',
@@ -98,12 +99,13 @@ export const PRESETS = {
     /**
      * /api/language#add_pipe
      * Minimal single-block playground next to the add_pipe API table:
-     * one component block with editable name/factory plus the
-     * mutually-exclusive placement arguments (before/after/first/last)
-     * and optional name=/source=/config= fields. Generates the single
-     * nlp.add_pipe(...) call so readers can see how the arguments
-     * combine — and get an error hint when they pick more than one
-     * placement argument, mirroring the runtime validation.
+     * one component block with editable name/factory, the placement
+     * select (before/after/first/last) and a source= toggle. Generates
+     * the single nlp.add_pipe(...) call so readers can see how the
+     * arguments combine. Placement is a single select, so a multi-arg
+     * conflict (before + after etc.) can't be produced — no separate
+     * error hint is needed. TODO: config= field, once the real editor
+     * lands.
      */
     'api-add-pipe': {
         location: '/api/language#add_pipe',

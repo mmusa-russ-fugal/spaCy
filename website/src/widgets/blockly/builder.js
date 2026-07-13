@@ -32,7 +32,11 @@ const initialState = (preset) => ({
         .map((component) => ({
             source: null,
             disabled: false,
-            fromBase: !!preset.workspace.base,
+            // Only 'tour' presets seed the workspace with the base
+            // pipeline's own components (see generatePython's fromBase
+            // skip) — other modes' initial pipelines are additions on
+            // top of (or independent of) the base, not part of it.
+            fromBase: preset.mode === 'tour' && !!preset.workspace.base,
             factory: component.factory || component.name,
             ...component,
         })),

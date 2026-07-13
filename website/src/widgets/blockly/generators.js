@@ -89,7 +89,10 @@ export function generateSnippet(state) {
         lines.push(`source_nlp = spacy.load(${quote(component.source)})`)
     }
     lines.push(`nlp = spacy.load(${quote(state.base || 'en_core_web_sm')})`)
-    const args = [quote(component.factory || component.name)]
+    // With source= set, the first argument is the component's name in the
+    // source pipeline, not its factory (see the source= row in the table
+    // above)
+    const args = [quote(component.source ? component.name : component.factory || component.name)]
     if (component.name !== component.factory && !component.source) {
         args.push(`name=${quote(component.name)}`)
     }
