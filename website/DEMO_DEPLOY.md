@@ -35,7 +35,7 @@ only carries the documentation that describes its intended shape.
   is no Gatsby involved. `next.config.mjs` sets no `output` option — Next
   13.0.2 predates the `output: 'export'` config option (added in Next 13.3) —
   so today `website/out` comes from that CLI step, not a config flag. A later
-  migration phase (Track B.1, `migration/phase-1-build-pipeline`) switches this
+  migration phase (Track B.5, `migration/phase-1-build-pipeline`) switches this
   to the `output: 'export'` config option and drops the standalone `next
   export` command; this doc will need a matching update when that lands.
 - **No server-side logic.** The docs site is 100% static HTML/CSS/JS. There is
@@ -85,8 +85,9 @@ That Docker packaging lives **outside this repo**, in the same external deploy
 directory as the rest of the demo scaffolding, `~/code/personal/fugl.dev/spacy/`
 (built by a separate scaffolding step, not committed to this repo):
 
-- A `Dockerfile` there that builds the Python run-server image, using this
-  repo's `pipeline-composer/server/run_server.py` as its build context.
+- A `Dockerfile` there that builds the Python run-server image, with this
+  repo's `pipeline-composer/server/` as its build context (copying in
+  `run_server.py`).
 - A `docker-compose.yml` there that runs it as a single opt-in service (e.g.
   exposing the run-server on a local port the demo front-end can call).
 
