@@ -1,8 +1,15 @@
 import * as Blockly from "blockly/core"
 import { FieldMultilineInput } from "@blockly/field-multilineinput"
 
-import { catalog, languages, type ComponentDef, type FieldDef } from "@/lib/catalog"
+import {
+  catalog,
+  factoryMeta,
+  languages,
+  type ComponentDef,
+  type FieldDef,
+} from "@/lib/catalog"
 import { COMPONENT_BLOCK_PREFIX, PIPELINE_BLOCK_TYPE, fieldName } from "@/lib/spec"
+import { helpUrlFor } from "@/blockly/helpUrls"
 
 const COMPONENT_CONNECTION = "spacy_component"
 
@@ -13,24 +20,29 @@ export function registerFields(): void {
   }
 }
 
-function fieldToJson(field: FieldDef): Record<string, unknown>[] {
+function fieldToJson(
+  field: FieldDef,
+  defaultValue: unknown
+): Record<string, unknown>[] {
   const name = fieldName(field.key)
   const label = { type: "field_label", text: `${field.label}:` }
   switch (field.widget) {
     case "checkbox":
-      return [label, { type: "field_checkbox", name, checked: false }]
+      return [label, { type: "field_checkbox", name, checked: defaultValue === true }]
     case "number":
       return [
         label,
         {
           type: "field_number",
           name,
-          value: 0,
+          value: typeof defaultValue === "number" ? defaultValue : 0,
           ...(field.min !== undefined ? { min: field.min } : {}),
           ...(field.precision !== undefined ? { precision: field.precision } : {}),
         },
       ]
     case "dropdown":
+      // Options already lead with a "__default__" sentinel where a factory
+      // default should be left unset; Blockly selects options[0] initially.
       return [label, { type: "field_dropdown", name, options: field.options }]
     case "multiline":
       return [label, { type: "field_multilinetext", name, text: "" }]
@@ -39,7 +51,7 @@ function fieldToJson(field: FieldDef): Record<string, unknown>[] {
   }
 }
 
-function componentBlockJson(def: ComponentDef): Record<string, unknown> {
+export function componentBlockJson(def: ComponentDef): Record<string, unknown> {
   const styleByCategory = {
     trainable: "trainable_blocks",
     rulebased: "rulebased_blocks",
@@ -53,9 +65,10 @@ function componentBlockJson(def: ComponentDef): Record<string, unknown> {
     { type: "field_label", text: def.label },
     { type: "field_input", name: "NAME", text: "", tooltip: "Optional custom pipe name" },
   ]
+  const defaults = factoryMeta[def.factory]?.defaultConfig ?? {}
   let n = 3
   for (const field of def.fields) {
-    const [label, control] = fieldToJson(field)
+    const [label, control] = fieldToJson(field, defaults[field.key])
     finalArgs.push({ type: "input_dummy" }, label, control)
     parts.push(`%${n} %${n + 1} %${n + 2}`)
     n += 3
@@ -69,7 +82,7 @@ function componentBlockJson(def: ComponentDef): Record<string, unknown> {
     nextStatement: COMPONENT_CONNECTION,
     style: styleByCategory[def.category],
     tooltip: def.description,
-    helpUrl: `https://spacy.io/api/${def.factory.replace(/_/g, "-")}`,
+    helpUrl: helpUrlFor(def.factory),
   }
 }
 

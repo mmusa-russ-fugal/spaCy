@@ -174,6 +174,7 @@ export const catalog: ComponentDef[] = [
         label: "mode",
         widget: "dropdown",
         options: [
+          ["default", "__default__"],
           ["lookup", "lookup"],
           ["rule", "rule"],
         ],
