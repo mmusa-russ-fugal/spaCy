@@ -10,7 +10,6 @@ Usage: python scripts/generate_component_meta.py (requires spacy 3.8.x installed
 """
 
 import json
-import sys
 from pathlib import Path
 
 import spacy
@@ -67,7 +66,17 @@ def clean_config(value):
     return None
 
 
-def main() -> None:
+OUT_PATH = Path(__file__).parent.parent / "src" / "generated" / "factory-meta.json"
+
+
+def build_payload() -> dict:
+    """Dump FactoryMeta for the allowlisted factories from the installed spaCy.
+
+    Uses a blank English pipeline's factory meta so language-specific factory
+    defaults (e.g. the English lemmatizer's rule mode) match what the composer
+    actually runs. Importable so tests can diff the committed JSON against the
+    live spaCy install.
+    """
     nlp = spacy.blank("en")
     entries = []
     missing = []
@@ -89,16 +98,18 @@ def main() -> None:
             }
         )
     if missing:
-        sys.exit(f"Factories missing from registry: {missing}")
+        raise SystemExit(f"Factories missing from registry: {missing}")
+    return {"spacyVersion": spacy.__version__, "factories": entries}
 
-    out_path = Path(__file__).parent.parent / "src" / "generated" / "factory-meta.json"
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    payload = {
-        "spacyVersion": spacy.__version__,
-        "factories": entries,
-    }
-    out_path.write_text(json.dumps(payload, indent=2, sort_keys=False) + "\n")
-    print(f"Wrote {len(entries)} factories to {out_path} (spacy {spacy.__version__})")
+
+def main() -> None:
+    payload = build_payload()
+    OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    OUT_PATH.write_text(json.dumps(payload, indent=2, sort_keys=False) + "\n")
+    print(
+        f"Wrote {len(payload['factories'])} factories to {OUT_PATH} "
+        f"(spacy {spacy.__version__})"
+    )
 
 
 if __name__ == "__main__":
