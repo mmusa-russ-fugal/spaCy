@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import { generatePython, pyLiteral } from "@/lib/pygen"
 import { specFromWorkspace } from "@/lib/spec"
 import {
+  duplicateWorkspace,
   modelBaseWorkspace,
   rulerWorkspace,
   trainableWorkspace,
@@ -36,5 +37,11 @@ describe("generatePython", () => {
     expect(modelCode).toContain('nlp = spacy.load("en_core_web_sm")')
     const namedCode = generatePython(specFromWorkspace(trainableWorkspace).spec!)
     expect(namedCode).toContain('nlp.add_pipe("ner", name="my_ner")')
+  })
+
+  it("emits name= for a uniquified duplicate so add_pipe does not raise E007", () => {
+    const code = generatePython(specFromWorkspace(duplicateWorkspace).spec!)
+    expect(code).toContain('nlp.add_pipe("sentencizer")')
+    expect(code).toContain('nlp.add_pipe("sentencizer", name="sentencizer_2")')
   })
 })

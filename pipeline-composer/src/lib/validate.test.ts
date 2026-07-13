@@ -61,4 +61,13 @@ describe("validateSpec", () => {
     const { spec } = specFromWorkspace(modelBaseWorkspace)
     expect(validateSpec(spec!)).toEqual([])
   })
+
+  it("warns about duplicate-name (E007) when re-adding core pipes on a model base", () => {
+    const { spec } = specFromWorkspace(trainableWorkspace)
+    spec!.base = { type: "model", name: "en_core_web_sm" }
+    const warnings = validateSpec(spec!)
+    const collisions = warnings.filter((w) => w.message.includes("E007"))
+    // tok2vec + tagger keep their factory name; ner was renamed to my_ner.
+    expect(collisions.map((w) => w.blockId)).toEqual(["t1", "t2"])
+  })
 })

@@ -33,7 +33,10 @@ export function generatePython(spec: PipelineSpec): string {
   let rulerCount = 0
   for (const comp of spec.components) {
     const args: string[] = [pyLiteral(comp.factory)]
-    if (comp.explicitName) args.push(`name=${pyLiteral(comp.name)}`)
+    // Emit name= whenever it differs from the factory — both for a
+    // user-typed name and for a name uniquified for duplicates (e.g.
+    // "sentencizer_2"); otherwise add_pipe() raises spaCy's E007.
+    if (comp.name !== comp.factory) args.push(`name=${pyLiteral(comp.name)}`)
     if (Object.keys(comp.config).length) {
       args.push(`config=${pyLiteral(comp.config)}`)
     }
