@@ -23,6 +23,7 @@ import Languages from './widgets/languages.js'
 import QuickstartInstall from './widgets/quickstart-install.js'
 import QuickstartTraining from './widgets/quickstart-training.js'
 import QuickstartModels from './widgets/quickstart-models.js'
+import BlocklyPipelineBuilder from './widgets/blockly-pipeline-builder.js'
 
 import Benchmarks from '../docs/usage/_benchmarks-models.mdx'
 import Architecture101 from '../docs/usage/101/_architecture.mdx'
@@ -104,6 +105,7 @@ export const remarkComponents = {
     QuickstartInstall,
     QuickstartTraining,
     QuickstartModels,
+    BlocklyPipelineBuilder,
 
     Benchmarks,
     Architecture101,
