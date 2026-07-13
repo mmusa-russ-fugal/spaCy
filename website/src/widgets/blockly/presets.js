@@ -99,7 +99,7 @@ export const PRESETS = {
     /**
      * /api/language#add_pipe
      * Minimal single-block playground next to the add_pipe API table:
-     * one component block with editable name/factory, the placement
+     * one component block with an editable factory, the placement
      * select (before/after/first/last) and a source= toggle. Generates
      * the single nlp.add_pipe(...) call so readers can see how the
      * arguments combine. Placement is a single select, so a multi-arg
