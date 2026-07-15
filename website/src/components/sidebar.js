@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
-import { window } from 'browser-monads'
 
 import Link from './link'
 import Tag from './tag'
