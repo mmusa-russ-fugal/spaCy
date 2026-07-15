@@ -101,6 +101,31 @@ with build/verify/rollback steps.
    swappable seam, replacing the Phase-1 kill switch. Disjoint from `website/src`
    conversion work, so it **may run in parallel with Stage 2** rather than blocking it.
 
+   **DECIDED (2026-07-15): the PWA ships, using `@serwist/next` per
+   <https://serwist.pages.dev/docs/next/getting-started>** (see also the Next.js PWA
+   guide, <https://nextjs.org/docs/app/guides/progressive-web-apps>). This resolves
+   `PR_ORDER_OF_OPERATIONS.md`'s "only if a PWA is still wanted" question in the
+   affirmative. Implementation notes for the phase-5 agent:
+   - `npm i @serwist/next && npm i -D serwist`; wrap `next.config` with
+     `withSerwist({ swSrc, swDest: 'public/sw.js', disable: dev })`.
+   - **`@serwist/next` requires webpack** — this locks phase-4's webpack-first
+     decision; the optional Turbopack commit must stay optional/secondary.
+   - `swSrc` is a TypeScript worker source (Pages Router: e.g. `src/sw.ts`) using the
+     `Serwist` class + `defaultCache` runtime caching; register
+     `serwist.addEventListeners()`. Pages Router is supported; PWA metadata goes in
+     `_app`/`_document`, manifest as a static `public/` file.
+   - `tsconfig`: add `@serwist/next/typings` to `types`, `webworker` to `lib`,
+     exclude the generated `public/sw.js`. Gitignore `public/sw*` and
+     `public/swe-worker*`.
+   - **Static-export caveat**: with `output: 'export'`, `headers()` in `next.config`
+     does not apply — the `/sw.js` headers (`Cache-Control: no-cache, no-store,
+     must-revalidate`, `Content-Type`, CSP) move to the hosting layer: a Cloudflare
+     `_headers` file in the demo scaffold (Stage 4) and the Netlify config for the
+     real site.
+   - Scope: offline/runtime caching + installability (manifest, icons) only. **No
+     web-push/VAPID** — a static docs site has no server to hold subscriptions, and
+     static export precludes the guide's Server Actions approach.
+
 ## Stage 2 — JS → TSX conversion of `website/src` (~54 files; opens when Phase 4 merges)
 
 7. Merge `feature/website-types` (**PR #9**) first — but re-validate before merging:
@@ -146,8 +171,11 @@ compose-and-run smoke test on the 4 embed pages; console free of hydration error
     `wrangler.jsonc` (`custom_domain: spacy.fugl.dev`, static assets from
     `website/out`), `docker-compose.yml` + `Dockerfile` wrapping
     `pipeline-composer/server/run_server.py` as an opt-in companion service, and a
-    `README.md` with manual deploy steps. Verify with `wrangler dev` (serves, does not
-    publish) and `docker compose build` (builds, does not run/deploy). **After Stage 3**
+    `README.md` with manual deploy steps. Include a `_headers` file serving `/sw.js`
+    with `Cache-Control: no-cache, no-store, must-revalidate` (+ `Content-Type`, CSP)
+    per the phase-5 Serwist decision — static export can't set these from Next itself.
+    Verify with `wrangler dev` (serves, does not publish) and `docker compose build`
+    (builds, does not run/deploy). **After Stage 3**
     (needs `website/out` building and the composer run-server image).
 
 ## Orchestration mechanics (unchanged except ordering)
