@@ -41,7 +41,10 @@ async function loadEngine(onStage: (stage: string) => void): Promise<PyodideApi>
   const pyodide: PyodideApi = await mod.loadPyodide()
 
   onStage("Loading micropip…")
-  await pyodide.loadPackage(["micropip"])
+  // click is imported by spacy.cli but missed by micropip's resolution: spaCy's
+  // typer requirement resolves to typer/typer-slim from PyPI, which no longer
+  // declares click as a hard dependency. Load Pyodide's click build up front.
+  await pyodide.loadPackage(["micropip", "click"])
 
   onStage("Installing spaCy wheels (~50 MB, one-time)…")
   const micropip = pyodide.pyimport("micropip")
