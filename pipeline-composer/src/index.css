@@ -179,3 +179,10 @@
 .blocklyToolboxDiv {
   @apply bg-muted/60 text-foreground;
 }
+
+/* Tailwind's preflight sets `svg { display: block }`, which outranks the
+   display="none" presentation attribute Blockly uses to hide scrollbars,
+   leaving the flyout scrollbar visible after the flyout closes. */
+.injectionDiv svg[display="none"] {
+  display: none;
+}
