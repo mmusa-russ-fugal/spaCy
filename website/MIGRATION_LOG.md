@@ -120,3 +120,120 @@ entirely. The change is fully contained in the pin files (`.nvmrc`,
 (`meta/site.generated.mjs` is gitignored). `git revert <commit>` cleanly restores
 Node 18 / Python 3.8 and the original `assert`-based JSON import. Note: reverting
 the interop fix without also reverting the Node pin re-breaks the build on Node 22.
+
+---
+
+## Phase 1 — Build-pipeline modernization on Next 13.5.x
+
+Branch: `migration/phase-1-build-pipeline`
+
+Eliminates the two build-pipeline blockers for the later major-version bumps
+*before* any major bump: the standalone `next export` command (removed in
+Next 14) and `next-pwa` v5 (unmaintained, incompatible with newer Next). Also
+drops dead-weight dependencies. Still on Next 13.x — rendered output is
+unchanged (319 HTML pages, identical file list to the Phase 0 baseline).
+
+### What changed
+
+**1. Static export via `output: 'export'`** (replaces `next export`):
+
+- **`website/package.json`**: `next` and `eslint-config-next` `13.0.2` →
+  `13.5.11`, `@next/mdx` `^13.0.2` → `^13.5.11` (the `output: 'export'` config
+  option needs Next ≥ 13.3; 13.5.11 is the last 13.x release). `next-sitemap`
+  `^3.1.32` → `^4.2.3`. The `build` script drops the trailing `next export`
+  step: `next build && npm run sitemap` — the export into `out/` now happens
+  inside `next build` itself.
+- **`website/next.config.mjs`**: added `output: 'export'`.
+- **`website/next-sitemap.config.mjs`**: added `outDir: 'out'`. The sitemap
+  step now runs *after* the export, so it must write `sitemap.xml`,
+  `sitemap-0.xml` and `robots.txt` straight into the published `out/` dir
+  (next-sitemap's default `outDir` is `public/`, which was only correct when
+  `next export` copied `public/` into `out/` afterwards).
+
+**2. next-pwa removal + service-worker kill switch**:
+
+- **`website/next.config.mjs`**: removed the `withPWA(...)` wrapper and the
+  `next-pwa` import; **`website/package.json`**: removed the `next-pwa`
+  dependency.
+- **`website/public/sw.js`** (new, committed): a kill-switch service worker at
+  the exact URL the old next-pwa worker was registered from. On `install` it
+  calls `skipWaiting()`; on `activate` it deletes ALL caches, unregisters
+  itself, and reloads every open client. Production visitors have the old
+  Workbox worker installed; without this file at `/sw.js` their browsers would
+  keep serving stale precached content indefinitely.
+- **`website/.gitignore`**: removed the `public/sw.js*` and `public/workbox*`
+  ignore entries — `sw.js` is now a committed source file, and nothing
+  generates Workbox artifacts anymore.
+- `manifest.webmanifest` and the `<link rel="manifest">` in `pages/_app.tsx`
+  are intentionally kept — the site remains installable; only the offline
+  caching layer is removed.
+
+**DEPLOY NOTE (critical):** the kill-switch `public/sw.js` MUST ship in the
+same commit/deploy as the next-pwa removal — deploying the removal without it
+strands returning visitors on the old worker's stale cache forever.
+**Retention rule:** keep the kill switch deployed for **6–12 months minimum**
+(late-returning visitors only fetch it when they come back), unless the later
+Serwist phase (Phase 5) replaces it with a real service worker at the same
+`/sw.js` URL. Do not delete it early. Also note: rolling back a production
+deploy *across* this phase re-registers the old next-pwa worker in visitors'
+browsers — when rolling forward again, the kill switch must ship again.
+
+**3. Dead-weight dependency removal**:
+
+- **`website/package.json`**: dropped `remark` and `remark-react` — zero
+  imports anywhere in the site source (verified by grep; the `remark-gfm` /
+  `remark-smartypants` / `remark-unwrap-images` plugins are separate packages
+  and stay). `node-fetch` and `ws` are **kept** even though nothing in the
+  site source imports them: `@jupyterlab/services@3`'s `serverconnection.js`
+  does `eval('require')('node-fetch')` / `eval('require')('ws')` whenever it
+  loads outside a browser but does not declare either as a dependency —
+  they are host-provided. Next's prerender workers load that module for the
+  pages that bundle Juniper (`/`, `/404`, `/universe/*`), so removing
+  `node-fetch` breaks `next build` ("Cannot find module 'node-fetch'" during
+  prerendering; the require runs before the `global.fetch` fallback, so
+  Node 22's built-in fetch does not help).
+- Replaced `browser-monads` (unmaintained SSR `window`/`document` shims) in
+  its 8 consumer files, then dropped the dependency:
+  - Import-only removals — every use is inside `useEffect`, an event handler,
+    or a method only reachable client-side, where the real globals are always
+    available: `pages/404.js`, `src/components/section.js`,
+    `src/components/sidebar.js`, `src/components/juniper.js`,
+    `src/widgets/changelog.js`, `src/templates/models.js`.
+  - `src/components/quickstart.js`: import removed; the existing
+    `typeof window !== 'undefined'` (`isClient`) check already short-circuits
+    the one render-time `document` access.
+  - `src/components/progress.js`: `getOffset()`/`getScrollY()` are called
+    during render (initial `useState` values), so they now start with explicit
+    `typeof document/window === 'undefined'` guards returning the same inert
+    defaults the shim produced (`{ height: 0, vh: 0 }` / `0`).
+
+### How to verify
+
+```bash
+cd website
+npm ci
+npm run build   # prebuild → next build (exports into out/) → next-sitemap
+```
+
+Verified result (Node v22.22.2): build green; `out/` contains the same 319
+HTML pages as the Phase 0 baseline (`find out -name '*.html' | sort` — file
+lists diff clean, no URL-shape regressions); `out/sitemap.xml`,
+`out/sitemap-0.xml` and `out/robots.txt` present; `out/sw.js` is the kill
+switch; no `workbox-*.js` or other next-pwa artifacts in `out/` or `public/`;
+no `browser-monads` / `next-pwa` / `withPWA` / `next export` references left
+in source; spot-checked `out/index.html`, `out/usage/spacy-101.html`,
+`out/models/en.html`, `out/api/doc.html`, `out/universe.html` and the 404
+page for non-empty rendered content.
+
+Note for local builds: if you previously built this site pre-Phase-1, delete
+stale generated files from `public/` (`sw.js`, `workbox-*.js`, `sitemap*`,
+`robots.txt`) — they are no longer gitignored (sw.js) or no longer written
+there (sitemap/robots), and leftovers would be copied into `out/`.
+
+### Rollback
+
+`git revert` of this phase's commits restores Next 13.0.2, `next export`, and
+next-pwa. Safe locally. For **production**, see the deploy note above: any
+rollback across this phase re-installs the old service worker in visitors'
+browsers, so the roll-forward that follows must ship the kill-switch `sw.js`
+again (it is committed, so a plain roll-forward does this automatically).
