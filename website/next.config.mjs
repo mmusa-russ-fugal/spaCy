@@ -16,16 +16,13 @@ const nextConfig = withMDX({
     output: 'export',
     reactStrictMode: true,
     pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
-    eslint: {
-        ignoreDuringBuilds: true,
-    },
     typescript: {
         ignoreBuildErrors: true,
     },
     images: { unoptimized: true },
     env: {
-        DOCSEARCH_API_KEY: process.env.DOCSEARCH_API_KEY
-    }
+        DOCSEARCH_API_KEY: process.env.DOCSEARCH_API_KEY,
+    },
 })
 
 export default nextConfig

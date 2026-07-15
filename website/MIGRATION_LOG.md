@@ -520,3 +520,155 @@ output differences across the phase are the seven classified cosmetic
 classes above — safe in both directions. Netlify: standard
 restore-previous-deploy applies; no service-worker implications (the
 Phase 1 kill switch is untouched).
+
+## Phase 4 — Next 16.2.x + bundler strategy + ESLint 9 flat config + tooling
+
+Branch: `migration/phase-4-next16-tooling`
+
+Next 15.5.20 → 16.2.10 with builds pinned to webpack, `next lint` (removed
+in 16) replaced by an ESLint 9 flat config, Netlify plugin remnants dropped,
+prettier 2 → 3. Rendered output: same 319 HTML pages, file list identical to
+the Phase 3 baseline; the full-corpus normalized HTML diff is clean except
+one classified, invisible artifact (see below).
+
+Landed versions: `next`/`@next/mdx`/`eslint-config-next` 16.2.10,
+`eslint` 9.39.5, `prettier` 3.9.5, `typescript` 5.9.3 (unchanged).
+
+### What changed
+
+**Codemod.** `npx @next/codemod@canary upgrade 16.2.10` ran
+non-interactively (version passed explicitly; remaining prompts piped "n").
+Its three jscodeshift transforms (app-dir-runtime-config-experimental-edge,
+remove-unstable-prefix, remove-experimental-ppr) were all no-ops (71 files
+unmodified). Its dependency edits needed correction: it pinned exact
+versions (carets restored) and bumped `eslint` to **10.7.0**, which was
+reverted — eslint-config-next does not support ESLint 10 yet; this migration
+deliberately targets ESLint 9 (the 9 → 10 move stays Phase 6 scope).
+
+**4a/4b — Next 16.2.10 on webpack (bundler decision record).** Next 16
+makes Turbopack the default bundler; webpack remains the supported legacy
+path behind a CLI flag (`next build --help` lists `--webpack`; there is no
+config-file equivalent). The `dev` and `build` scripts now pass
+`--webpack`, so `npm run build` / `npm run dev` are webpack, exactly as
+before. **This is the locked decision:** the planned Phase 5 PWA
+(`@serwist/next`) requires webpack, so webpack-first is not provisional.
+
+- `tsconfig.json`: Next 16 enforces `moduleResolution: "bundler"` and
+  `jsx: "react-jsx"` (the build itself rewrites the file otherwise); the
+  auto-migration is committed. `npx tsc --noEmit` still reports exactly the
+  24 pre-existing errors (list identical to the Phase 3 baseline modulo one
+  column number shifted by a reformatted line in `pages/index.tsx`).
+- `next.config.mjs`: the `eslint.ignoreDuringBuilds` block was removed —
+  Next 16 no longer recognizes the `eslint` key (it warned on every build).
+
+**Upstream regression found and worked around (SWC JSX whitespace).**
+Next 16's bundled SWC drops the *leading space* of a JSXText node when the
+node (a) spans multiple source lines and (b) contains an HTML entity such
+as `&apos;`. Reproduced in isolation against `next/dist/build/swc`
+(`" so efficient…"` compiles to `"so efficient…"` when the node contains
+`&apos;`; the identical node without the entity keeps the space; Next 15
+kept it in both cases). Corpus impact: 5 text nodes, all on the landing
+page (`pages/index.tsx`), where the space after an inline `<strong>`
+disappeared — visible words ran together ("annotation **tool**so
+efficient"). Fix: those five nodes now use literal apostrophes instead of
+`&apos;` (rendered output is identical — React re-escapes to `&#x27;` —
+and `react/no-unescaped-entities` is off in eslint-config-next, verified
+against the old `next lint` too). **Caveat for the TSX-conversion stage:**
+avoid HTML entities inside multi-line JSX text until upstream fixes this;
+an entity re-introduced into a multi-line text node will silently eat a
+word space at its start.
+
+**4b commit B (Turbopack) — attempted, then dropped.** A separate
+`build:turbopack` script was implemented and compiled green: string plugin
+specifiers gated behind a `TURBOPACK_BUILD=1` env check in
+`next.config.mjs` (default webpack build kept the plugin function arrays
+untouched), with local plugins as absolute paths — @next/mdx's loader
+resolves specifiers against each processed file's directory
+(`this.context`), so the plan's relative `'./plugins/…'` form only works
+for files at the project root, and `plugins/index.mjs` cannot import
+`node:url` itself because the browser bundle also imports it. The output,
+however, diverges corpus-wide: Turbopack generates a different CSS-module
+class-name scheme (`navigation_root__NM8yI` →
+`navigation-module-sass-module__JHkvfa__root`), changing every `class`
+attribute on every page (~291k normalized diff lines), plus different
+static-asset name hashing. That is a non-trivial rendered-output
+divergence (and a DocSearch-crawler / cache risk), so per plan the commit
+was dropped and the branch stays webpack-only. HTML page lists were
+identical, so Turbopack remains *viable* if ever needed — but not
+output-compatible.
+
+**4c — ESLint 9 flat config.** `eslint ^9.39.5` +
+`eslint-config-next ^16.2.10`. New `website/eslint.config.mjs` spreads the
+`eslint-config-next/core-web-vitals` flat export (the same base the old
+`.eslintrc.json` extended); `.eslintrc.json` and `.eslintrc` deleted (the
+latter was dead config — ESLint resolved `.eslintrc.json` first). Lint
+script: `next lint` → `eslint pages src meta plugins`. Parity with the old
+baseline is exact: the same 3 findings (2 × `react/no-direct-mutation-state`
+errors in `src/components/juniper.js` 138/146, 1 × `@next/next/no-img-element`
+warning in `src/components/embed.js` 113) and the same exit code 1 — the
+juniper errors are pre-existing and juniper is Phase 6 replacement scope.
+To get there, rules newly enforced by eslint-config-next 16 /
+eslint-plugin-react-hooks 7 were tuned off instead of mass-fixing
+long-standing code (`react/no-unescaped-entities`,
+`react-hooks/set-state-in-effect`, `react-hooks/immutability`,
+`react-hooks/refs`, `import/no-anonymous-default-export` — 19 findings:
+11 in long-standing code untouched by this branch, and 8
+`react/no-unescaped-entities` flags on the literal apostrophes that the
+4a SWC workaround itself introduced in `pages/index.tsx` — that rule must
+stay off until the upstream SWC JSXText-entity bug is fixed, or "fixing"
+its flags by restoring `&apos;` re-triggers the word-gluing bug on the
+landing page), and the generated
+`meta/site.generated.mjs` is ignored (it was never linted before —
+`next lint` did not cover `meta/`).
+
+**4d — Netlify cleanup.** `website/netlify.toml`: dropped the
+`@netlify/plugin-nextjs` plugins block and the `NETLIFY_NEXT_PLUGIN_SKIP`
+env — publishing the static `out/` needs neither. No other references
+exist in the repo; the root `netlify.toml` redirects are untouched.
+
+**4e — Tooling.** `prettier ^3.9.5`. The repo's `.prettierrc` already
+pins every option whose default changed in prettier 3 (notably
+`trailingComma: "es5"`), so no tree-wide reformat: the only source delta
+was trailing commas in `next.config.mjs`. `prettier --check` passes on all
+files this branch touches. `.prettierignore` gains `out/` and
+`MIGRATION_LOG.md` (historical entries predate prettier 3's markdown
+emphasis normalization). TypeScript stays 5.9.3 — the latest 5.x and the
+plan's consolidated target (`^5.9`); npm's `latest` now points at the 7.x
+native-compiler major, out of scope here and incompatible with the
+24-error baseline requirement.
+
+### Verification
+
+1. `npm ci && npm run build` green from a clean install (webpack path,
+   sitemap generated). `out/` HTML file list: 319 pages, byte-identical to
+   the Phase 3 baseline list.
+2. Full-corpus normalized HTML diff vs the verified Phase 3 build tree
+   (buildId/chunk/CSS asset refs normalized): **2 diff lines on 1 page** —
+   on `/`, `ready to <code>` became `ready to<!-- --> <code>`; an
+   invisible React text-separator comment introduced because prettier's
+   rewrap of `pages/index.tsx` moved a line break before `<InlineCode>`
+   (explicit `{' '}`). Rendered DOM and text are identical; the same
+   comment pattern already exists elsewhere on the page. Everything else,
+   including all MDX pages, `/usage/spacy-101`, `/api/doc`, and
+   `/universe/project/*`, is byte-identical after normalization
+   (`__NEXT_DATA__` payloads compared separately: only webpack
+   `dynamicIds` module-id churn).
+3. `npm run lint`: exact pre-upgrade parity (3 findings, exit 1; see 4c).
+4. `npx tsc --noEmit`: 24 errors, none new (see 4a/4b).
+5. `npm run dev` (webpack): ready in <1 s, `/` responds 200 with expected
+   landing content; the SWC whitespace fix holds in dev output too.
+6. Kill-switch `out/sw.js`, `out/sitemap.xml`, `out/robots.txt` present.
+7. Build-warning delta vs Phase 3: none meaningful — the same sass
+   deprecation and large-page-data warnings; the `eslint`-key config
+   warning was eliminated (4a).
+
+### Rollback
+
+`git revert` of this phase's five commits restores Next 15.5.20 /
+ESLint 8 + `next lint` / prettier 2 (lockfile included). Source changes
+are small and contained (scripts, one config key, flat-config file,
+netlify.toml, five text nodes in `pages/index.tsx`); the revert is clean.
+Rendered output differs across the phase only by the one invisible comment
+node above — safe in both directions. Netlify: standard
+restore-previous-deploy; no service-worker implications (the Phase 1 kill
+switch is untouched).
