@@ -22,6 +22,7 @@ const withPWA = PWA({
 /** @type {import('next').NextConfig} */
 const nextConfig = withPWA(
     withMDX({
+        output: 'export',
         reactStrictMode: true,
         swcMinify: true,
         pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
