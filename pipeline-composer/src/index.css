@@ -175,8 +175,8 @@
   }
 }
 
-/* Blockly overrides so the injected workspace fills its container */
-.blocklyToolboxDiv {
+/* Blockly 13 renders the toolbox as .blocklyToolbox (.blocklyToolboxDiv is gone) */
+.blocklyToolbox {
   @apply bg-muted/60 text-foreground;
 }
 
