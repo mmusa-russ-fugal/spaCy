@@ -21,8 +21,8 @@ const nextConfig = withMDX({
     },
     images: { unoptimized: true },
     env: {
-        DOCSEARCH_API_KEY: process.env.DOCSEARCH_API_KEY
-    }
+        DOCSEARCH_API_KEY: process.env.DOCSEARCH_API_KEY,
+    },
 })
 
 export default nextConfig

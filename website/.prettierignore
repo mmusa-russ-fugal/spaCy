@@ -1,1 +1,5 @@
 .next
+out
+# migration log: historical entries predate prettier 3 markdown
+# normalization; kept as written
+MIGRATION_LOG.md
