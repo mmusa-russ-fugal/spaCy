@@ -1,5 +1,4 @@
 import React from 'react'
-import { window } from 'browser-monads'
 import classNames from 'classnames'
 
 import Template from '../src/templates/index'

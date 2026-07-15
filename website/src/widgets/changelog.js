@@ -1,5 +1,4 @@
 import React, { useState, useEffect, Fragment } from 'react'
-import { window } from 'browser-monads'
 
 import Link from '../components/link'
 import { InlineCode } from '../components/inlineCode'

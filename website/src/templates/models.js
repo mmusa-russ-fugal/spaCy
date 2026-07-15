@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo, Fragment } from 'react'
-import { window } from 'browser-monads'
 
 import Title from '../components/title'
 import Section from '../components/section'

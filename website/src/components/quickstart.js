@@ -1,7 +1,6 @@
 import React, { Fragment, useState, useEffect, useRef, Children } from 'react'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
-import { window, document } from 'browser-monads'
 
 import Section from './section'
 import Icon from './icon'

@@ -2,7 +2,6 @@ import React, { useEffect } from 'react'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
 import { useInView } from 'react-intersection-observer'
-import { window } from 'browser-monads'
 
 import classes from '../styles/section.module.sass'
 
