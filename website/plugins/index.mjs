@@ -17,5 +17,3 @@ export const remarkPlugins = [
 ]
 
 export const rehypePlugins = [rehypeUnwrapImages]
-
-export default remarkPlugins

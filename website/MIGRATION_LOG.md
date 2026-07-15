@@ -433,8 +433,10 @@ Phase 2 baseline (file-list diff clean), `sitemap.xml`/`robots.txt`/kill-
 switch `sw.js` present. Spot checks: `/api/doc` renders its 37 tables;
 `/usage/training` quickstart-widget markup intact; universe project pages
 intact; images are NOT wrapped in `<p>` (rehype-unwrap-images matches the
-old remark-unwrap-images behavior — 0 `<p><img` occurrences, same
-`<figure>` counts as Phase 2); 0 leftover `%%…%%` tokens. Plausible: the
+old remark-unwrap-images behavior — 0 `<p><img` occurrences in docs pages;
+universe README pages, which go through the client markdown path, contain
+`<p><img` but are unchanged vs Phase 2 — same `<figure>` counts as
+Phase 2); 0 leftover `%%…%%` tokens. Plausible: the
 script tag is injected at hydration by next-plausible (next/script,
 afterInteractive) — it is absent from static HTML in Phase 2 *and* 3
 (parity) and was confirmed present in the live DOM (`script[data-domain]`)

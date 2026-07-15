@@ -15,7 +15,7 @@ type ApiDetails = {
         title: string
         slug: string
     } | null
-    trainable: string | null
+    trainable: boolean | null
 }
 
 export type PropsPageBase = {
@@ -51,15 +51,16 @@ type ParsedUrlQuery = {
 
 /**
  * next-mdx-remote v5 types frontmatter as Record<string, unknown>;
- * type the fields this page actually reads (all YAML frontmatter in
- * website/docs is string-valued for these keys).
+ * type the fields this page actually reads. Most of these keys are
+ * string-valued in the website/docs YAML frontmatter, but
+ * `api_trainable` is a YAML boolean (e.g. `api_trainable: true`).
  */
 type PageFrontmatter = {
     title: string
     section?: string
     api_string_name?: string
     api_base_class?: string
-    api_trainable?: string
+    api_trainable?: boolean
 }
 
 export const getStaticPaths: GetStaticPaths<ParsedUrlQuery> = async () => {
