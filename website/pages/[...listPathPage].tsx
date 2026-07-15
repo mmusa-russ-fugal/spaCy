@@ -4,7 +4,7 @@ import fs from 'fs'
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
 import path from 'path'
 import Layout from '../src/templates'
-import remarkPlugins from '../plugins/index.mjs'
+import { remarkPlugins, rehypePlugins } from '../plugins/index.mjs'
 
 import recordSection from '../meta/recordSections'
 import { sidebarUsageFlat } from '../meta/sidebarFlat'
@@ -49,6 +49,19 @@ type ParsedUrlQuery = {
     listPathPage: Array<string>
 }
 
+/**
+ * next-mdx-remote v5 types frontmatter as Record<string, unknown>;
+ * type the fields this page actually reads (all YAML frontmatter in
+ * website/docs is string-valued for these keys).
+ */
+type PageFrontmatter = {
+    title: string
+    section?: string
+    api_string_name?: string
+    api_base_class?: string
+    api_trainable?: string
+}
+
 export const getStaticPaths: GetStaticPaths<ParsedUrlQuery> = async () => {
     // This function needs to be defined inside `getStaticPath` to be executed in executed in the correct context
     const loadFolder = (pathBase: Array<string> = []): Array<{ params: ParsedUrlQuery }> =>
@@ -91,10 +104,13 @@ export const getStaticProps: GetStaticProps<PropsPage, ParsedUrlQuery> = async (
     const listPathFileWithIndex = isIndex ? [...listPathFile, 'index'] : listPathFile
     const pathFileWithIndexAndExtension = getPathFileWithExtension(listPathFileWithIndex)
 
-    const mdx = await serialize(fs.readFileSync(pathFileWithIndexAndExtension, 'utf-8'), {
-        parseFrontmatter: true,
-        mdxOptions: { remarkPlugins },
-    })
+    const mdx = await serialize<Record<string, unknown>, PageFrontmatter>(
+        fs.readFileSync(pathFileWithIndexAndExtension, 'utf-8'),
+        {
+            parseFrontmatter: true,
+            mdxOptions: { remarkPlugins, rehypePlugins },
+        }
+    )
 
     if (!mdx.frontmatter) {
         throw new Error(`Frontmatter missing for ${pathFileWithIndexAndExtension}`)
