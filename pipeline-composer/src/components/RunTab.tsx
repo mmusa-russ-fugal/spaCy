@@ -9,7 +9,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { languages } from "@/lib/catalog"
 import type { PipelineSpec } from "@/lib/spec"
 import { detectBackend, runOnBackend } from "@/runtime/backend"
-import { getPyodideEngine, getPyodideSpacyVersion, runOnPyodide } from "@/runtime/pyodide"
+import {
+  getPyodideEngine,
+  getPyodideLoadError,
+  getPyodideSpacyVersion,
+  pyodideEngineRequested,
+  runOnPyodide,
+} from "@/runtime/pyodide"
 import type { EngineState, RunResult } from "@/runtime/types"
 
 const DEFAULT_TEXT = "Apple is looking at buying U.K. startup for $1 billion."
@@ -20,9 +26,11 @@ export function RunTab({ spec }: { spec: PipelineSpec | null }) {
   const [running, setRunning] = useState(false)
   const [result, setResult] = useState<RunResult | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const pyodideWanted = useRef(false)
+  // Survives tab switches: the engine cache lives at module scope, so a
+  // remounted RunTab reattaches instead of asking the user to enable again.
+  const pyodideWanted = useRef(pyodideEngineRequested())
 
-  const checkBackend = useCallback(async () => {
+  const checkBackend = useCallback(async (opts?: { retryPyodide?: boolean }) => {
     setEngine({ kind: "checking" })
     const health = await detectBackend()
     if (health) {
@@ -32,6 +40,16 @@ export function RunTab({ spec }: { spec: PipelineSpec | null }) {
         models: health.models,
       })
     } else if (pyodideWanted.current) {
+      // Surface a load that failed while this tab was unmounted, instead of
+      // silently re-downloading; Retry passes retryPyodide to start over.
+      const loadError = getPyodideLoadError()
+      if (loadError !== null && !opts?.retryPyodide) {
+        setEngine({
+          kind: "error",
+          message: `In-browser engine failed to load: ${loadError}`,
+        })
+        return
+      }
       setEngine({ kind: "pyodide-loading", stage: "Reconnecting…" })
       try {
         const version = await getPyodideSpacyVersion((stage) =>
@@ -39,7 +57,10 @@ export function RunTab({ spec }: { spec: PipelineSpec | null }) {
         )
         setEngine({ kind: "pyodide", spacyVersion: version })
       } catch (err) {
-        setEngine({ kind: "error", message: String(err) })
+        setEngine({
+          kind: "error",
+          message: `In-browser engine failed to load: ${String(err)}`,
+        })
       }
     } else {
       setEngine({ kind: "no-backend" })
@@ -105,7 +126,7 @@ export function RunTab({ spec }: { spec: PipelineSpec | null }) {
     <div className="flex h-full min-h-0 flex-col gap-3 p-3">
       <BackendStatus
         engine={engine}
-        onRecheck={() => void checkBackend()}
+        onRecheck={() => void checkBackend({ retryPyodide: engine.kind === "error" })}
         onEnablePyodide={() => void enablePyodide()}
       />
 

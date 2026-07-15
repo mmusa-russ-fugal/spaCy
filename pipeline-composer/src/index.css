@@ -175,7 +175,14 @@
   }
 }
 
-/* Blockly overrides so the injected workspace fills its container */
-.blocklyToolboxDiv {
+/* Blockly 13 renders the toolbox as .blocklyToolbox (.blocklyToolboxDiv is gone) */
+.blocklyToolbox {
   @apply bg-muted/60 text-foreground;
+}
+
+/* Tailwind's preflight sets `svg { display: block }`, which outranks the
+   display="none" presentation attribute Blockly uses to hide scrollbars,
+   leaving the flyout scrollbar visible after the flyout closes. */
+.injectionDiv svg[display="none"] {
+  display: none;
 }

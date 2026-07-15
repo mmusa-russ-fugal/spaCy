@@ -34,36 +34,68 @@ interface PyodideApi {
 }
 
 let pyodidePromise: Promise<PyodideApi> | null = null
+let lastLoadError: string | null = null
+let currentStage: string | null = null
+const stageListeners = new Set<(stage: string) => void>()
 
-async function loadEngine(onStage: (stage: string) => void): Promise<PyodideApi> {
-  onStage("Loading Pyodide runtime…")
+function setStage(stage: string) {
+  currentStage = stage
+  for (const listener of stageListeners) listener(stage)
+}
+
+async function loadEngine(): Promise<PyodideApi> {
+  setStage("Loading Pyodide runtime…")
   const mod = await import(/* @vite-ignore */ PYODIDE_CDN)
   const pyodide: PyodideApi = await mod.loadPyodide()
 
-  onStage("Loading micropip…")
-  await pyodide.loadPackage(["micropip"])
+  setStage("Loading micropip…")
+  // click is imported by spacy.cli but missed by micropip's resolution: spaCy's
+  // typer requirement resolves to typer/typer-slim from PyPI, which no longer
+  // declares click as a hard dependency. Load Pyodide's click build up front.
+  await pyodide.loadPackage(["micropip", "click"])
 
-  onStage("Installing spaCy wheels (~50 MB, one-time)…")
+  setStage("Installing spaCy wheels (~50 MB, one-time)…")
   const micropip = pyodide.pyimport("micropip")
   await micropip.install(WHEELS)
 
-  onStage("Preparing runner…")
+  setStage("Preparing runner…")
   await pyodide.runPythonAsync(runnerSource)
-  onStage("Ready")
+  setStage("Ready")
   return pyodide
+}
+
+/**
+ * Whether the in-browser engine has already been requested this session
+ * (loaded, loading, or failed), so UI remounts can reattach — or surface the
+ * failure — instead of asking the user to enable it again.
+ */
+export function pyodideEngineRequested(): boolean {
+  return pyodidePromise !== null || lastLoadError !== null
+}
+
+/** The error from the most recent failed load, until a new load starts. */
+export function getPyodideLoadError(): string | null {
+  return lastLoadError
 }
 
 /** Load (once) and cache the Pyodide engine. Safe to call repeatedly. */
 export function getPyodideEngine(
   onStage: (stage: string) => void
 ): Promise<PyodideApi> {
-  if (!pyodidePromise) {
-    pyodidePromise = loadEngine(onStage).catch((err) => {
+  stageListeners.add(onStage)
+  if (pyodidePromise) {
+    // Reattaching to an in-flight (or finished) load: replay the latest stage
+    // so a remounted caller shows real progress instead of a stale placeholder.
+    if (currentStage !== null) onStage(currentStage)
+  } else {
+    lastLoadError = null
+    pyodidePromise = loadEngine().catch((err) => {
       pyodidePromise = null // allow retry after a failed download
+      lastLoadError = String(err)
       throw err
     })
   }
-  return pyodidePromise
+  return pyodidePromise.finally(() => stageListeners.delete(onStage))
 }
 
 export async function runOnPyodide(
