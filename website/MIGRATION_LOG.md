@@ -611,8 +611,13 @@ To get there, rules newly enforced by eslint-config-next 16 /
 eslint-plugin-react-hooks 7 were tuned off instead of mass-fixing
 long-standing code (`react/no-unescaped-entities`,
 `react-hooks/set-state-in-effect`, `react-hooks/immutability`,
-`react-hooks/refs`, `import/no-anonymous-default-export` — 20 findings,
-all in code untouched by this branch), and the generated
+`react-hooks/refs`, `import/no-anonymous-default-export` — 19 findings:
+11 in long-standing code untouched by this branch, and 8
+`react/no-unescaped-entities` flags on the literal apostrophes that the
+4a SWC workaround itself introduced in `pages/index.tsx` — that rule must
+stay off until the upstream SWC JSXText-entity bug is fixed, or "fixing"
+its flags by restoring `&apos;` re-triggers the word-gluing bug on the
+landing page), and the generated
 `meta/site.generated.mjs` is ignored (it was never linted before —
 `next lint` did not cover `meta/`).
 
