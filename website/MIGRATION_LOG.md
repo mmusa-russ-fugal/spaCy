@@ -237,3 +237,77 @@ next-pwa. Safe locally. For **production**, see the deploy note above: any
 rollback across this phase re-installs the old service worker in visitors'
 browsers, so the roll-forward that follows must ship the kill-switch `sw.js`
 again (it is committed, so a plain roll-forward does this automatically).
+
+---
+
+## Phase 2 — Next 14.2.x checkpoint
+
+Branch: `migration/phase-2-next14`
+
+Major-version bump Next 13.5.11 → 14.2.35 (latest 14.2 patch). By design this
+is a near-zero-code-change checkpoint: the only Next-14 breaking change that
+affects this site — removal of the standalone `next export` command — was
+pre-solved in Phase 1 (`output: 'export'`), so no source or config edits were
+needed. React stays 18.2.0, MDX stays v2, `next-mdx-remote` stays 4.2.0, and
+the inert `experimental.mdxRs` block in `next.config.mjs` stays — all of those
+are Phase 3 scope. Rendered output is unchanged: same 319 HTML pages, file
+list identical to the Phase 1 baseline.
+
+### What changed
+
+- **`website/package.json`**: `next` `13.5.11` → `^14.2.35`,
+  `eslint-config-next` `13.5.11` → `^14.2.35`, `@next/mdx` `^13.5.11` →
+  `^14.2.35`. All three move in lockstep, as before.
+- **`website/package.json`**: `next-plausible` `^3.6.5` → `^3.12.5`. This is
+  the one peer-dep adaptation Next 14 required: `next-plausible@3.6.5`
+  declares `peer next@"^11.1.0 || ^12.0.0 || ^13.0.0"`, so `npm ci` fails
+  with `ERESOLVE` against next 14. `3.12.5` widens the peer range to
+  next ^11–^16 (covering the rest of the migration). The floor is raised in
+  `package.json` (not just the lockfile) so a future re-resolve can't slide
+  back below Next-14 peer support. The site's only usage —
+  `<PlausibleProvider domain={domain} enabled>` in `pages/_app.tsx` — is
+  unchanged API across 3.x; no code change.
+- **`website/package-lock.json`**: regenerated for the above.
+- No changes to `next.config.mjs`: `output: 'export'`, `swcMinify`,
+  `images.unoptimized` and the MDX options are all still valid Next 14
+  config (no schema complaints in the build output).
+
+### How to verify
+
+```bash
+cd website
+npm ci
+npm run build   # prebuild → next build (Next 14.2.35, exports into out/) → next-sitemap
+```
+
+Verified result (Node v22.22.2): build green — `✓ Compiled successfully`,
+`✓ Generating static pages (320/320)`, sitemap step runs. `out/` contains the
+same 319 HTML pages as the Phase 1 baseline (`find out -name '*.html' | sort`
+diffs clean against the Phase 1 file list). `out/sitemap.xml`,
+`out/sitemap-0.xml`, `out/robots.txt` present; `out/sw.js` is still the
+Phase 1 kill switch; no workbox artifacts. Spot checks: `out/index.html`
+contains the benchmarks-section content, `out/usage/spacy-101.html` contains
+its imported 101-partial content (e.g. the pipeline-101 "When you call `nlp`
+on a text" passage), `out/api/doc.html` and `out/universe/project/*.html`
+non-empty, zero leftover `%%…%%` tokens.
+
+Warning delta vs Phase 1 (nothing actionable):
+
+- Pre-existing and unchanged: the 2 "Invalid href" warnings from malformed
+  universe/API data URLs, and the "data … exceeds 128 kB" warnings for
+  `/api/architectures` and `/api/cli`.
+- The *third* large-page-data warning moved from `/api/language` to
+  `/api/large-language-models` — both sit at the 128 kB threshold boundary
+  and Next 14 serializes page data slightly differently; cosmetic.
+- The Phase 1 `⚠ Invalid next.config.mjs options detected:
+  "env.DOCSEARCH_API_KEY" is missing, expected string` warning (when the env
+  var is unset) is gone — Next 14's config schema no longer flags it.
+- The `sharp` recommendation warning remains (images are `unoptimized`, so
+  it's moot for this static export).
+
+### Rollback
+
+`git revert` of this phase's two commits restores Next 13.5.11 and
+`next-plausible`'s `^3.6.5` floor (lockfile included). No source files
+changed, so rollback is dependency-only and safe locally and in production —
+rendered output is identical on both sides of this phase.
