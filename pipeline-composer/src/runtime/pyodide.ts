@@ -56,6 +56,14 @@ async function loadEngine(onStage: (stage: string) => void): Promise<PyodideApi>
   return pyodide
 }
 
+/**
+ * Whether the in-browser engine has already been requested this session,
+ * so UI remounts can reattach instead of asking the user to enable it again.
+ */
+export function pyodideEngineRequested(): boolean {
+  return pyodidePromise !== null
+}
+
 /** Load (once) and cache the Pyodide engine. Safe to call repeatedly. */
 export function getPyodideEngine(
   onStage: (stage: string) => void

@@ -9,7 +9,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { languages } from "@/lib/catalog"
 import type { PipelineSpec } from "@/lib/spec"
 import { detectBackend, runOnBackend } from "@/runtime/backend"
-import { getPyodideEngine, getPyodideSpacyVersion, runOnPyodide } from "@/runtime/pyodide"
+import {
+  getPyodideEngine,
+  getPyodideSpacyVersion,
+  pyodideEngineRequested,
+  runOnPyodide,
+} from "@/runtime/pyodide"
 import type { EngineState, RunResult } from "@/runtime/types"
 
 const DEFAULT_TEXT = "Apple is looking at buying U.K. startup for $1 billion."
@@ -20,7 +25,9 @@ export function RunTab({ spec }: { spec: PipelineSpec | null }) {
   const [running, setRunning] = useState(false)
   const [result, setResult] = useState<RunResult | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const pyodideWanted = useRef(false)
+  // Survives tab switches: the engine cache lives at module scope, so a
+  // remounted RunTab reattaches instead of asking the user to enable again.
+  const pyodideWanted = useRef(pyodideEngineRequested())
 
   const checkBackend = useCallback(async () => {
     setEngine({ kind: "checking" })
