@@ -119,7 +119,7 @@ const Landing = () => {
                         integrates Large Language Models (LLMs) into spaCy, featuring a modular
                         system for <strong>fast prototyping</strong> and <strong>prompting</strong>,
                         and turning unstructured responses into <strong>robust outputs</strong> for
-                        various NLP tasks, <strong>no training data</strong> required. 
+                        various NLP tasks, <strong>no training data</strong> required.
                     </p>
                 </LandingBanner>
 
@@ -143,8 +143,8 @@ const Landing = () => {
                     <p>
                         Prodigy is an <strong>annotation tool</strong> so efficient that data
                         scientists can do the annotation themselves, enabling a new level of rapid
-                        iteration. Whether you&apos;re working on entity recognition, intent
-                        detection or image classification, Prodigy can help you{' '}
+                        iteration. Whether you're working on entity recognition, intent detection or
+                        image classification, Prodigy can help you{' '}
                         <strong>train and evaluate</strong> your models faster.
                     </p>
                 </LandingBanner>
@@ -234,25 +234,25 @@ const Landing = () => {
                     <Ul>
                         <Li emoji="🔥">
                             <strong>Streamlined.</strong> Nobody knows spaCy better than we do. Send
-                            us your pipeline requirements and we&apos;ll be ready to start producing
-                            your solution in no time at all.
+                            us your pipeline requirements and we'll be ready to start producing your
+                            solution in no time at all.
                         </Li>
                         <Li emoji="🐿 ">
                             <strong>Production ready.</strong> spaCy pipelines are robust and easy
-                            to deploy. You&apos;ll get a complete spaCy project folder which is
-                            ready to <InlineCode>spacy project run</InlineCode>.
+                            to deploy. You'll get a complete spaCy project folder which is ready to{' '}
+                            <InlineCode>spacy project run</InlineCode>.
                         </Li>
                         <Li emoji="🔮">
-                            <strong>Predictable.</strong> You&apos;ll know exactly what you&apos;re
-                            going to get and what it&apos;s going to cost. We quote fees up-front,
-                            let you try before you buy, and don&apos;t charge for over-runs at our
-                            end — all the risk is on us.
+                            <strong>Predictable.</strong> You'll know exactly what you're going to
+                            get and what it's going to cost. We quote fees up-front, let you try
+                            before you buy, and don't charge for over-runs at our end — all the risk
+                            is on us.
                         </Li>
                         <Li emoji="🛠">
-                            <strong>Maintainable.</strong> spaCy is an industry standard, and
-                            we&apos;ll deliver your pipeline with full code, data, tests and
-                            documentation, so your team can retrain, update and extend the solution
-                            as your requirements change.
+                            <strong>Maintainable.</strong> spaCy is an industry standard, and we'll
+                            deliver your pipeline with full code, data, tests and documentation, so
+                            your team can retrain, update and extend the solution as your
+                            requirements change.
                         </Li>
                     </Ul>
                 </LandingBanner>

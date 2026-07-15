@@ -4,7 +4,7 @@ import fs from 'fs'
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
 import path from 'path'
 import Layout from '../src/templates'
-import remarkPlugins from '../plugins/index.mjs'
+import { remarkPlugins, rehypePlugins } from '../plugins/index.mjs'
 
 import recordSection from '../meta/recordSections'
 import { sidebarUsageFlat } from '../meta/sidebarFlat'
@@ -39,6 +39,20 @@ export default PostPage
 
 type ParsedUrlQuery = {
     listPathPage: Array<string>
+}
+
+/**
+ * next-mdx-remote v5 types frontmatter as Record<string, unknown>;
+ * type the fields this page actually reads. Most of these keys are
+ * string-valued in the website/docs YAML frontmatter, but
+ * `api_trainable` is a YAML boolean (e.g. `api_trainable: true`).
+ */
+type PageFrontmatter = {
+    title: string
+    section?: string
+    api_string_name?: string
+    api_base_class?: string
+    api_trainable?: boolean
 }
 
 export const getStaticPaths: GetStaticPaths<ParsedUrlQuery> = async () => {
@@ -83,10 +97,13 @@ export const getStaticProps: GetStaticProps<PropsPage, ParsedUrlQuery> = async (
     const listPathFileWithIndex = isIndex ? [...listPathFile, 'index'] : listPathFile
     const pathFileWithIndexAndExtension = getPathFileWithExtension(listPathFileWithIndex)
 
-    const mdx = await serialize(fs.readFileSync(pathFileWithIndexAndExtension, 'utf-8'), {
-        parseFrontmatter: true,
-        mdxOptions: { remarkPlugins },
-    })
+    const mdx = await serialize<Record<string, unknown>, PageFrontmatter>(
+        fs.readFileSync(pathFileWithIndexAndExtension, 'utf-8'),
+        {
+            parseFrontmatter: true,
+            mdxOptions: { remarkPlugins, rehypePlugins },
+        }
+    )
 
     if (!mdx.frontmatter) {
         throw new Error(`Frontmatter missing for ${pathFileWithIndexAndExtension}`)
@@ -107,9 +124,7 @@ export const getStaticProps: GetStaticProps<PropsPage, ParsedUrlQuery> = async (
                   slug: mdx.frontmatter.api_base_class,
               }
             : null,
-        // next-mdx-remote types every frontmatter value as `string`, but YAML
-        // parses `api_trainable` as a boolean at runtime.
-        trainable: (mdx.frontmatter.api_trainable as unknown as boolean | undefined) ?? null,
+        trainable: mdx.frontmatter.api_trainable ?? null,
     }
 
     const slug = `/${args.params.listPathPage.join('/')}`

@@ -1,4 +1,9 @@
-import site from './site.json' assert { type: 'json' }
+// site.json is imported via the generated JS mirror site.generated.mjs (built
+// by setup/setup.sh) rather than a JSON module: this file is loaded both by raw
+// Node (next.config.mjs / next-sitemap.config.mjs) and bundled to the browser
+// (remark plugins run client-side), and no ESM JSON import-attribute syntax is
+// accepted by both Node 22 and Next 13's SWC. A plain JS module sidesteps that.
+import site from './site.generated.mjs'
 
 export const domain = process.env.BRANCH || site.domain
 export const siteUrl = `https://${domain}`

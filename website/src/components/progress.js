@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { document, window } from 'browser-monads'
 
 import classes from '../styles/progress.module.sass'
 
 function getOffset() {
+    // Called during render (initial state), which also runs server-side
+    if (typeof document === 'undefined') return { height: 0, vh: 0 }
     const height = Math.max(
         document.body.scrollHeight,
         document.body.offsetHeight,
@@ -16,6 +17,8 @@ function getOffset() {
 }
 
 function getScrollY() {
+    // Called during render (initial state), which also runs server-side
+    if (typeof window === 'undefined') return 0
     const pos = (window.pageYOffset || document.scrollTop) - (document.clientTop || 0)
     return isNaN(pos) ? 0 : pos
 }

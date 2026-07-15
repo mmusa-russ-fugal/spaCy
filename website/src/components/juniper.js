@@ -5,7 +5,6 @@ import { createTheme } from '@uiw/codemirror-themes'
 import { tags as t } from '@lezer/highlight'
 import { python } from '@codemirror/lang-python'
 import { Kernel, ServerConnection } from '@jupyterlab/services'
-import { window } from 'browser-monads'
 import classes from '../styles/code.module.sass'
 
 const spacyTheme = createTheme({
