@@ -1,7 +1,7 @@
 import getProps from './getProps.mjs'
 
 const handleNode = (node) => {
-    if (node.type === 'section' && node.children) {
+    if ((node.type === 'section' || node.type === 'blockquote') && node.children) {
         return {
             ...node,
             children: node.children.map(handleNode),
