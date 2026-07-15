@@ -60,6 +60,7 @@ function remarkCodeBlocks(userOptions = {}) {
         visit(tree, 'inlineCode', (node) => {
             node.type = 'mdxJsxTextElement'
             node.name = 'InlineCode'
+            node.attributes = []
             node.children = [
                 {
                     type: 'text',

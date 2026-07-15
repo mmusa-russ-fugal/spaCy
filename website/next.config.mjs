@@ -1,15 +1,13 @@
 import MDX from '@next/mdx'
 
-import remarkPlugins from './plugins/index.mjs'
+import { remarkPlugins, rehypePlugins } from './plugins/index.mjs'
 
 const withMDX = MDX({
     extension: /\.mdx?$/,
     options: {
         remarkPlugins,
+        rehypePlugins,
         providerImportSource: '@mdx-js/react',
-    },
-    experimental: {
-        mdxRs: true,
     },
 })
 
@@ -17,7 +15,6 @@ const withMDX = MDX({
 const nextConfig = withMDX({
     output: 'export',
     reactStrictMode: true,
-    swcMinify: true,
     pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
     eslint: {
         ignoreDuringBuilds: true,

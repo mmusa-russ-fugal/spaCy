@@ -311,3 +311,212 @@ Warning delta vs Phase 1 (nothing actionable):
 `next-plausible`'s `^3.6.5` floor (lockfile included). No source files
 changed, so rollback is dependency-only and safe locally and in production —
 rendered output is identical on both sides of this phase.
+
+---
+
+## Phase 3 — React 19 + MDX v3 + next-mdx-remote v5 + Next 15.5.x
+
+Branch: `migration/phase-3-react19-mdx3-next15`
+
+The interlocked big bump: Next 14.2.35 → 15.5.20, React 18.2.0 → 19.2.7,
+MDX v2 → v3 (`@mdx-js/loader`/`@mdx-js/react` 2.1.5 → 3.1.1), and
+`next-mdx-remote` 4.2.0 → 5.0.0. These move together — there is no green
+intermediate state (next-mdx-remote 4 caps React at 18; MDX 3 requires the
+v5 line; Next 15 wants React 19). Webpack remains the bundler (Turbopack is
+Phase 4 scope). Rendered output: same 319 HTML pages, file list identical to
+the Phase 2 baseline; a full-corpus normalized HTML diff was reviewed and
+every change classified (see below) — no regressions.
+
+### What changed
+
+**Codemod.** `npx @next/codemod@latest upgrade 15` was run (it is
+interactive; answers: upgrade React to 19, no Turbopack for dev, skip the
+React 19 codemods). It bumped `next`/`@next/mdx`/`eslint-config-next` to
+15.5.20, `react`/`react-dom` to 19.2.7, `@types/react(-dom)` to 19.x with
+matching `overrides`, and ran three jscodeshift transforms — all no-ops for
+this codebase (Pages Router, no async request APIs). It also performed an
+unrequested `next lint` → ESLint-9-flat-config migration; that part was
+**reverted** (flat config deleted, `"lint": "next lint"` restored,
+`eslint ^8.57.1` — `next lint` is still supported in Next 15, and the
+ESLint 9 migration is deliberately Phase 4c scope). Everything else below
+was applied manually.
+
+**Dependencies** (`website/package.json` + lockfile):
+
+- `next`/`@next/mdx`/`eslint-config-next` `^15.5.20`; `react`/`react-dom`
+  `^19.2.7`; `@types/react` `19.2.17` and `@types/react-dom` `19.2.3`
+  (pinned, mirrored in `overrides` so transitive `@types` stay deduped).
+- `@mdx-js/loader`/`@mdx-js/react` `^3.1.1`; `next-mdx-remote` `^5.0.0`
+  (v5 = MDX 3 + React 19 support; same entry points and `serialize`
+  signature as v4, but compiled MDX now evaluates in **strict mode** — see
+  the remarkCustomAttrs fix below).
+- remark stack for unified 11: `remark-gfm ^4.0.1`,
+  `remark-smartypants ^3.0.2`, `unist-util-visit ^5.1.0`;
+  `remark-unwrap-images` **removed**, replaced by `rehype-unwrap-images
+  ^1.0.0` (its designated successor; unwrapping now happens at the hast
+  stage).
+- React-19 peer stragglers, resolved by *upgrading* rather than overriding
+  (verified: none of the plan's suspected overrides were needed —
+  `@rehooks/online-status` declares no peers and `react-github-btn`'s
+  `react >=16.3` already admits 19): `@docsearch/react ^3.9.0` (3.9 widened
+  peers to `< 20`; stays on v3 — v4 is Phase 6 scope), `react-inlinesvg
+  ^4.5.0`, `react-intersection-observer ^9.16.0`.
+- Toolchain: `typescript ^5.9.3`, `@types/node ^22`, `sass ^1.101.0`,
+  `eslint ^8.57.1` (config-next 15's `@typescript-eslint` 8 needs
+  ≥ 8.57). `html-to-react` resolves to 1.7.0 within its existing `^1.5.0`
+  range and works under React 19 (verified at build + runtime on the
+  `/models/*` pages) — no bump needed.
+
+**Config / pipeline wiring:**
+
+- `next.config.mjs`: removed `swcMinify` (option removed in Next 15) and
+  the inert `experimental.mdxRs` block (it was misplaced inside the MDX
+  plugin options and never did anything); the MDX loader now receives
+  `rehypePlugins` alongside `remarkPlugins`.
+- `plugins/index.mjs`: exports named `remarkPlugins` and `rehypePlugins`
+  arrays (`rehypePlugins = [rehype-unwrap-images]`); the default export is
+  kept for compatibility. All three MDX pipelines consume both arrays:
+  `next.config.mjs` (@next/mdx loader for `.mdx` pages/partials),
+  `pages/[...listPathPage].tsx` (server-side next-mdx-remote `serialize`
+  for all docs pages), and `src/components/markdownToReact.js`
+  (client-side `serialize` for universe/models markdown — the v5 entry
+  point `next-mdx-remote/serialize` is unchanged, so no fallback to
+  `next-mdx-remote-client` or getStaticProps pre-serialization was needed).
+- `tsconfig.json`: `target` `es5` → `ES2017`. Next 15 made no further
+  auto-migrations (`moduleResolution: "node"` accepted as-is).
+- `pages/[...listPathPage].tsx`: v5 types frontmatter as
+  `Record<string, unknown>` (v4 was stringly typed), which added five new
+  tsc errors; fixed by passing explicit `serialize<Scope, PageFrontmatter>`
+  generics typing the fields the page reads.
+
+**Custom remark plugin audit** (against unified 11 / mdast-util-mdx-jsx v3,
+the predicted breakage point):
+
+- `remarkCodeBlocks.mjs`: the fabricated `mdxJsxTextElement` (InlineCode)
+  now carries the required `attributes: []` array (v3 expects it; v2
+  tolerated its absence).
+- `remarkCustomAttrs.mjs`: now also processes headings inside blockquotes.
+  This fixes the one real build breakage of the phase:
+  `> #### Pipeline Package URLs {id="pipeline-urls"}` in
+  `docs/usage/models.mdx` left its `{id="..."}` mdxTextExpression in the
+  tree; next-mdx-remote v4 evaluated compiled MDX in sloppy mode, so
+  `id = "pipeline-urls"` silently leaked a global and rendered stray
+  "pipeline-urls" text (with the in-page `#pipeline-urls` link pointing
+  nowhere); v5 evaluates in strict mode, turning it into a hard prerender
+  failure (`ReferenceError: id is not defined`). The heading now gets its
+  intended `id` + permalink and the anchor works.
+- `remarkFindAndReplace.mjs`, `remarkWrapSections.mjs`, `getProps.mjs`: no
+  changes needed (mdast text/code/link/heading shapes and the estree
+  attribute format are unchanged; remarkWrapSections' legacy MDX-v1
+  `'import'`-node handling was already dead code under MDX 2 and stays
+  inert — no docs `.mdx` contains real ESM).
+
+**Widget seam** (`src/remark.js`): unchanged and verified working — the
+`remarkComponents` map still feeds the `MDXProvider` in `pages/_app.tsx`
+(loader pipeline) and the `scope` in `src/templates/index.js`
+(next-mdx-remote pipeline). A future Blockly widget registers there
+unchanged. No `<BlocklyPipelineBuilder />` embeds exist on this branch yet
+(they arrive with the Blockly PR).
+
+### How to verify
+
+```bash
+cd website
+npm ci
+npm run build     # prebuild → next build (15.5.20, exports out/) → next-sitemap
+npx tsc --noEmit  # 24 errors, byte-identical list to the Phase 2 baseline (0 new)
+```
+
+Verified result (Node v22.22.2): build green — `✓ Generating static pages
+(320/320)`, sitemap step runs, `out/` has the same 319 HTML pages as the
+Phase 2 baseline (file-list diff clean), `sitemap.xml`/`robots.txt`/kill-
+switch `sw.js` present. Spot checks: `/api/doc` renders its 37 tables;
+`/usage/training` quickstart-widget markup intact; universe project pages
+intact; images are NOT wrapped in `<p>` (rehype-unwrap-images matches the
+old remark-unwrap-images behavior — 0 `<p><img` occurrences in docs pages;
+universe README pages, which go through the client markdown path, contain
+`<p><img` but are unchanged vs Phase 2 — same `<figure>` counts as
+Phase 2); 0 leftover `%%…%%` tokens. Plausible: the
+script tag is injected at hydration by next-plausible (next/script,
+afterInteractive) — it is absent from static HTML in Phase 2 *and* 3
+(parity) and was confirmed present in the live DOM (`script[data-domain]`)
+on all browser-checked pages.
+
+**Full-corpus normalized HTML diff** (Phase 3 requirement): all 319 pages
+were diffed against the Phase 2 build after normalizing hashed asset URLs,
+inline script bodies (`__NEXT_DATA__` embeds the compiled MDX, which
+changes wholesale with MDX 3 by design), CSS-module class hashes, and
+attribute order. Every remaining change falls into one of these classes —
+reviewed and accepted, none are regressions:
+
+1. **Next 15 head management**: `data-next-head=""` attributes on
+   head tags, `<meta name="next-head-count">` removed, head-element
+   reordering (viewport meta and CSS links move; same elements).
+2. **React 19 SSR attribute serialization**: casing of a few attributes
+   (`noModule`, `readOnly`, `noValidate`, `allowFullScreen` — HTML is
+   case-insensitive here) and per-element attribute reordering.
+3. **React 19 image preloading**: new `<link rel="preload" as="image">`
+   head hints for non-lazy `<img>`s (React Float; performance hint only).
+4. **MDX 3 / mdast-util-to-hast 13 GFM tables**: column alignment emitted
+   as `style="text-align:…"` instead of the deprecated `align` attribute
+   (no site CSS/JS keys off `align`).
+5. **remark-smartypants v3**: 6 distinct quote-direction changes — 4 are
+   corrections of previously wrong-direction quotes; 2 are new
+   wrong-direction cases (`”Compact mode”` where a quote opens a table
+   cell, on 2 displacy-related pages, and `Nivre (2005)‘s` where an
+   apostrophe directly follows a link, 1 page). Cosmetic typography;
+   accepted as upstream behavior rather than editing docs content.
+6. **@docsearch/react 3.3 → 3.9**: search button `aria-label` now
+   "Search (Command+K)" and `aria-hidden` on its icon.
+7. **Intentional fix** (1 page): `/usage/models` — stray "pipeline-urls"
+   text removed from the aside heading, which now has
+   `id="pipeline-urls"` + permalink (see remarkCustomAttrs above).
+
+DocSearch/Algolia note: heading ids, anchors, and section structure are
+unchanged corpus-wide (verified by the same diff — the only id change is
+the *added* `#pipeline-urls`), so the crawler selectors keep matching.
+
+**Hydration check** (Chromium via Playwright against `npm run dev`):
+loaded `/`, `/usage/spacy-101`, `/usage/training`,
+`/universe/project/sense2vec` (client-side serialize path), `/api/doc`.
+Pages render fully; Plausible script present in DOM on all five. The dev
+console shows hydration mismatches — **all pre-existing**: the identical
+checks against a Phase 2 dev server reproduce every one (React 18 wording
+"Expected server HTML to contain a matching <button>…" / "Prop className
+did not match" vs React 19 wording "Hydration failed…"). Causes are
+long-standing SSR/client branches, out of Phase 3 scope: the quickstart
+copy-button renders only when `isClient && document.queryCommandSupported`
+(`src/components/quickstart.js`), and the dynamically-loaded Prism `Code`
+component adds `language-*`/`tabindex` after load. Behavioral nuance:
+React 18 patched attribute mismatches to the client value; React 19 keeps
+the server value until Prism re-renders — no visible difference. The
+"unique key prop" dev warnings (`Code`, `TypeAnnotation`) are likewise
+present on Phase 2. No *new* hydration or console errors were introduced.
+
+`tsc --noEmit`: 24 errors, list byte-identical to the Phase 2 worktree
+baseline (strict still false; the 5 errors newly introduced by
+next-mdx-remote v5's frontmatter typing were fixed, no pre-existing errors
+touched).
+
+Build-warning delta vs Phase 2 (nothing actionable): the two pre-existing
+"Invalid href" warnings and the large-page-data warnings remain; sass
+1.101 now prints `@import`/global-builtin deprecation warnings (Phase 6
+lists the `@import` → `@use` rewrite); the sharp recommendation is gone
+(Next 15 no longer suggests it for unoptimized exports).
+
+### Fallbacks
+
+None taken. `next-mdx-remote@5.0.0` works as-is in all three pipelines
+(the `next-mdx-remote-client` fork and getStaticProps pre-serialization
+contingencies were not needed).
+
+### Rollback
+
+`git revert` of this phase's five commits restores Next 14.2.35 /
+React 18.2.0 / MDX 2 / next-mdx-remote 4 (lockfile included). Source
+changes are small and contained (config, plugin pipeline, two ~1-line
+plugin adaptations, one typing block), so the revert is clean. Rendered
+output differences across the phase are the seven classified cosmetic
+classes above — safe in both directions. Netlify: standard
+restore-previous-deploy applies; no service-worker implications (the
+Phase 1 kill switch is untouched).
