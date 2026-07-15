@@ -88,6 +88,10 @@ with build/verify/rollback steps.
    `typeof window !== 'undefined'` guards.
    **Changed from round 1: no widget-placeholder integration here** — under this
    ordering no Blockly widget exists on `master` during the migration.
+   Also commit `website/public/_headers` here (Cloudflare-style headers file, copied
+   into `out/` by the export) so the demo scaffold's `/sw.js` + global security
+   headers ship with every build instead of being hand-copied (see
+   `~/code/personal/fugl.dev/spacy/HANDOFF.md`).
 3. `migration/phase-2-next14` (off phase-1) — Next 14.2.x checkpoint.
 4. `migration/phase-3-react19-mdx3-next15` (off phase-2) — the interlocked bump:
    React 19, MDX v3, `next-mdx-remote` v5, Next 15.5. Audit the 4 custom remark
@@ -148,6 +152,12 @@ new tests (if any) target logic extracted during conversion, per the testing pol
 11. `feature/pipeline-composer` (**PR #11**) merges **no later than here** (it is the
     porting reference); being fully disjoint (`pipeline-composer/` only), it may merge
     any time earlier without risk.
+    **Post-merge follow-ups from the demo scaffold** (details in
+    `~/code/personal/fugl.dev/spacy/HANDOFF.md`): `server/run_server.py` binds
+    `127.0.0.1` only — add a `--host` option (`0.0.0.0` for Docker) so the demo
+    container doesn't need `network_mode: host`; and its `ALLOWED_ORIGINS` is
+    hardcoded to the Vite dev origin (`localhost:5173`) — add `https://spacy.fugl.dev`
+    and `http://localhost:3000` so the docs-site widget can reach `/api/run`.
 12. `feature/blockly-editor` — a **single unit replacing round 1's
     placeholder-then-swap pair**: implement the website widget directly in TSX against
     the final Next 16 / React 19 / strict-TS toolchain — real `BlocklyWorkspace`
