@@ -2,7 +2,6 @@
  * Prop types for `website/src/widgets/*.js`.
  */
 import type { ReactNode } from 'react'
-import type { LanguageDependency } from './site-data'
 
 /** Named logos rendered by the integration widget. */
 export type IntegrationLogoName =
@@ -36,7 +35,6 @@ export interface LanguageRowProps {
     name: string
     code: string
     models?: string[]
-    dependencies?: LanguageDependency[]
 }
 
 export interface QuickstartInstallWidgetProps {

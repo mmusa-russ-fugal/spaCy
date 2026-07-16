@@ -2,7 +2,7 @@
  * The `pageContext` objects produced per page (MDX frontmatter enriched at
  * build time) and consumed by `templates/{docs,models,universe,index}.js`.
  */
-import type { SidebarLeafItem } from './nav'
+import type { SidebarSection } from './nav'
 
 /** The next page in a doc's reading order. */
 export interface NextPageRef {
@@ -49,8 +49,12 @@ export interface DocsPageContext {
     version?: string
     apiDetails?: ApiDetails
     searchExclude?: boolean
-    /** Present when a page overrides its section's default sidebar. */
-    sidebar?: SidebarLeafItem[]
+    /**
+     * Present when a page overrides its section's default sidebar with
+     * labelled groups from its frontmatter (see `docs/styleguide.mdx`);
+     * `templates/docs.js` wraps it as `{ items: pageContext.sidebar }`.
+     */
+    sidebar?: SidebarSection[]
 }
 
 /**

@@ -298,6 +298,7 @@ export interface InlineCodeProps {
     wrap?: boolean
     className?: string
     children?: ReactNode
+    [key: string]: unknown
 }
 
 export interface TypeAnnotationProps {
@@ -332,7 +333,7 @@ export interface DropdownProps {
     defaultValue?: string
     className?: string
     onChange?: (event: unknown) => void
-    children?: ReactNode
+    children: ReactNode
 }
 
 export interface ReadNextProps {
@@ -468,7 +469,6 @@ export interface LandingCardProps {
 
 export interface LandingButtonProps {
     to?: string
-    small?: boolean
     children?: ReactNode
 }
 
