@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 
 import {
     LandingHeader,
@@ -31,7 +30,7 @@ import { nightly, legacy } from '../meta/dynamicMeta.mjs'
 import Benchmarks from '../docs/usage/_benchmarks-models.mdx'
 import { ImageFill } from '../src/components/embed'
 
-function getCodeExample(nightly) {
+function getCodeExample(nightly: boolean) {
     return `# pip install -U ${nightly ? 'spacy-nightly --pre' : 'spacy'}
 # python -m spacy download en_core_web_sm
 import spacy

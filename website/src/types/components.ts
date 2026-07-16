@@ -5,7 +5,13 @@
  * Components that forward arbitrary attributes to a DOM element keep an
  * `[key: string]: unknown` index signature to mirror that pass-through.
  */
-import type { CSSProperties, ElementType, MouseEventHandler, ReactNode } from 'react'
+import type {
+    ChangeEventHandler,
+    CSSProperties,
+    ElementType,
+    MouseEventHandler,
+    ReactNode,
+} from 'react'
 import type {
     AlertVariant,
     ButtonVariant,
@@ -332,7 +338,13 @@ export interface CopyInputProps {
 export interface DropdownProps {
     defaultValue?: string
     className?: string
-    onChange?: (event: unknown) => void
+    /**
+     * Replaces the default handler (which routes `target.value` through the
+     * Next router). Typed as a select change handler — `(event: unknown) =>
+     * void` was wrong here: under `strictFunctionTypes` no useful handler is
+     * assignable to it.
+     */
+    onChange?: ChangeEventHandler<HTMLSelectElement>
     children: ReactNode
 }
 

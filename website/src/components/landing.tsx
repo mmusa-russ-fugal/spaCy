@@ -1,4 +1,4 @@
-import React from 'react'
+import { CSSProperties, ReactNode } from 'react'
 import classNames from 'classnames'
 
 import patternDefault from '../images/pattern_blue.png'
@@ -15,14 +15,22 @@ import CodeBlock from './codeBlock'
 import { H1, H2, H3 } from './typography'
 import Link from './link'
 import classes from '../styles/landing.module.sass'
+import type {
+    LandingBannerProps,
+    LandingButtonProps,
+    LandingCardProps,
+    LandingDemoProps,
+    LandingGridProps,
+    LandingHeaderProps,
+} from '../types'
 
-function getPattern(nightly, legacy) {
+function getPattern(nightly?: boolean, legacy?: boolean) {
     if (nightly) return { pattern: patternNightly, overlay: overlayNightly }
     if (legacy) return { pattern: patternLegacy, overlay: overlayLegacy }
     return { pattern: patternDefault, overlay: overlayDefault }
 }
 
-export const LandingHeader = ({ nightly, legacy, style = {}, children }) => {
+export const LandingHeader = ({ nightly, legacy, style = {}, children }: LandingHeaderProps) => {
     const { pattern, overlay } = getPattern(nightly, legacy)
     const wrapperStyle = { backgroundImage: `url(${pattern.src})` }
     const contentStyle = { backgroundImage: `url(${overlay.src})`, ...style }
@@ -37,15 +45,17 @@ export const LandingHeader = ({ nightly, legacy, style = {}, children }) => {
     )
 }
 
-export const LandingTitle = ({ children }) => <h1 className={classes['title']}>{children}</h1>
+export const LandingTitle = ({ children }: { children?: ReactNode }) => (
+    <h1 className={classes['title']}>{children}</h1>
+)
 
-export const LandingSubtitle = ({ children }) => (
+export const LandingSubtitle = ({ children }: { children?: ReactNode }) => (
     <h2>
         <span className={classNames(classes['label'], classes['subtitle'])}>{children}</span>
     </h2>
 )
 
-export const LandingGrid = ({ cols = 3, blocks = false, style, children }) => (
+export const LandingGrid = ({ cols = 3, blocks = false, style, children }: LandingGridProps) => (
     <Content className={classNames({ [classes['blocks']]: blocks })}>
         <Grid cols={cols} narrow={blocks} className={classes['grid']} style={style}>
             {children}
@@ -53,9 +63,9 @@ export const LandingGrid = ({ cols = 3, blocks = false, style, children }) => (
     </Content>
 )
 
-export const LandingCol = ({ children }) => <div>{children}</div>
+export const LandingCol = ({ children }: { children?: ReactNode }) => <div>{children}</div>
 
-export const LandingCard = ({ title, button, url, children }) => (
+export const LandingCard = ({ title, button, url, children }: LandingCardProps) => (
     <div className={classes['card']}>
         <section className={classes['card-text']}>
             {title && <H3>{title}</H3>}
@@ -69,13 +79,13 @@ export const LandingCard = ({ title, button, url, children }) => (
     </div>
 )
 
-export const LandingButton = ({ to, children }) => (
+export const LandingButton = ({ to, children }: LandingButtonProps) => (
     <Button to={to} variant="primary" large className={classes['button']}>
         {children}
     </Button>
 )
 
-export const LandingDemo = ({ title, children }) => {
+export const LandingDemo = ({ title, children }: LandingDemoProps) => {
     return (
         <div className={classes['demo']}>
             <CodeBlock executable lang="python" title={title}>
@@ -85,7 +95,7 @@ export const LandingDemo = ({ title, children }) => {
     )
 }
 
-export const LandingBannerGrid = ({ children }) => (
+export const LandingBannerGrid = ({ children }: { children?: ReactNode }) => (
     <Grid cols={2} className={classes['banner-grid']}>
         {children}
     </Grid>
@@ -101,18 +111,22 @@ export const LandingBanner = ({
     backgroundImage,
     color,
     children,
-}) => {
+}: LandingBannerProps) => {
     const contentClassNames = classNames(classes['banner-content'], {
         [classes['banner-content-small']]: small,
     })
     const textClassNames = classNames(classes['banner-text'], {
         [classes['banner-text-small']]: small,
     })
-    const style = {
+    // @types/react 19 removed the CSSProperties index signature, so the CSS
+    // custom properties are typed explicitly. `backgroundImage` uses
+    // `undefined` instead of the previous `null` (identical to React).
+    const style: CSSProperties &
+        Record<'--color-theme' | '--color-theme-dark' | '--color-back', string | undefined> = {
         '--color-theme': background,
         '--color-theme-dark': background,
         '--color-back': color,
-        backgroundImage: backgroundImage ? `url(${backgroundImage})` : null,
+        backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
     }
     const Heading = small ? H2 : H1
     return (
@@ -144,7 +158,15 @@ export const LandingBanner = ({
     )
 }
 
-export const LandingBannerButton = ({ to, small, children }) => (
+export const LandingBannerButton = ({
+    to,
+    small,
+    children,
+}: {
+    to?: string
+    small?: boolean
+    children?: ReactNode
+}) => (
     <div className={classes['banner-button']}>
         <Button
             to={to}

@@ -8,7 +8,7 @@ import { remarkPlugins, rehypePlugins } from '../plugins/index.mjs'
 
 import recordSection from '../meta/recordSections'
 import { sidebarUsageFlat } from '../meta/sidebarFlat'
-import type { ApiDetails } from '../src/types/page-context'
+import type { ApiDetails } from '../src/types'
 
 export type PropsPageBase = {
     /**
@@ -18,7 +18,8 @@ export type PropsPageBase = {
     slug: string
     sectionTitle: string | null
     theme: string | null
-    section: string
+    /** `null` when neither the frontmatter nor the parent folder yields one. */
+    section: string | null
     isIndex: boolean
 }
 
@@ -114,16 +115,17 @@ export const getStaticProps: GetStaticProps<PropsPage, ParsedUrlQuery> = async (
             ? listPathFileWithIndex[listPathFileWithIndex.length - 2]
             : null
     const section = mdx.frontmatter.section ?? parentFolder
-    const sectionMeta = section ? recordSection[section] ?? null : null
+    const sectionMeta = section ? (recordSection[section] ?? null) : null
     const baseClass = null
     const apiDetails: ApiDetails = {
         stringName: mdx.frontmatter.api_string_name ?? null,
-        baseClass: baseClass
-            ? {
-                  title: mdx.frontmatter.title,
-                  slug: mdx.frontmatter.api_base_class,
-              }
-            : null,
+        baseClass:
+            baseClass && mdx.frontmatter.api_base_class
+                ? {
+                      title: mdx.frontmatter.title,
+                      slug: mdx.frontmatter.api_base_class,
+                  }
+                : null,
         trainable: mdx.frontmatter.api_trainable ?? null,
     }
 

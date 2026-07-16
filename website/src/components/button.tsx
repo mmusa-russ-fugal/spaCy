@@ -1,10 +1,9 @@
-import React from 'react'
-import PropTypes from 'prop-types'
 import classNames from 'classnames'
 
 import Link from './link'
 import Icon from './icon'
 import classes from '../styles/button.module.sass'
+import type { ButtonProps } from '../types'
 
 export default function Button({
     to,
@@ -14,7 +13,7 @@ export default function Button({
     className,
     children,
     ...props
-}) {
+}: ButtonProps) {
     const buttonClassNames = classNames(classes.root, className, {
         [classes.large]: large,
         [classes.primary]: variant === 'primary',
@@ -27,12 +26,4 @@ export default function Button({
             {children}
         </Link>
     )
-}
-
-Button.propTypes = {
-    to: PropTypes.string,
-    variant: PropTypes.oneOf(['primary', 'secondary', 'tertiary']),
-    large: PropTypes.bool,
-    icon: PropTypes.string,
-    className: PropTypes.string,
 }

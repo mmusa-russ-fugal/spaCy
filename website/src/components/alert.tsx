@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
-import PropTypes from 'prop-types'
+import { useState } from 'react'
 import classNames from 'classnames'
 
 import Icon from './icon'
 import classes from '../styles/alert.module.sass'
+import type { AlertProps } from '../types'
 
-export default function Alert({ title, icon, variant, closeOnClick = true, children }) {
+export default function Alert({ title, icon, variant, closeOnClick = true, children }: AlertProps) {
     const [visible, setVisible] = useState(true)
     const alertClassNames = classNames(classes.root, {
         [classes.warning]: variant === 'warning',
@@ -18,12 +18,4 @@ export default function Alert({ title, icon, variant, closeOnClick = true, child
             {title && <strong>{title}</strong>} {children}
         </aside>
     )
-}
-
-Alert.propTypes = {
-    title: PropTypes.string,
-    icon: PropTypes.string,
-    variant: PropTypes.oneOf(['warning']),
-    closeOnClick: PropTypes.bool,
-    children: PropTypes.node,
 }

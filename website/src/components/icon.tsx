@@ -1,5 +1,4 @@
-import React, { Fragment } from 'react'
-import PropTypes from 'prop-types'
+import { Fragment, ReactNode } from 'react'
 import classNames from 'classnames'
 import SVG from 'react-inlinesvg'
 
@@ -28,8 +27,9 @@ import packageIcon from '../images/icons/package.svg'
 
 import { isString } from './util'
 import classes from '../styles/icon.module.sass'
+import type { IconName, IconProps, IconVariant } from '../types'
 
-const icons = {
+const icons: Record<IconName, { src: string }> = {
     github: gitHubIcon,
     twitter: twitterIcon,
     website: websiteIcon,
@@ -63,8 +63,11 @@ export default function Icon({
     variant,
     className,
     ...props
-}) {
-    const icon = icons[name]
+}: IconProps) {
+    // Widened: at runtime `name` may be an unknown string (the component
+    // guards with `!icon ? null : …`), even though typed call sites pass
+    // a known `IconName`.
+    const icon: { src: string } | undefined = icons[name]
     const iconClassNames = classNames(classes.root, className, {
         [classes.inline]: inline,
         [classes.success]: variant === 'success',
@@ -83,33 +86,31 @@ export default function Icon({
     )
 }
 
-Icon.propTypes = {
-    name: PropTypes.oneOf(Object.keys(icons)),
-    width: PropTypes.number,
-    height: PropTypes.number,
-    inline: PropTypes.bool,
-    variant: PropTypes.oneOf(['success', 'error', 'subtle']),
-    className: PropTypes.string,
+interface EmojiIconMeta {
+    name: IconName
+    variant: IconVariant
+    'aria-label': string
 }
 
-export function replaceEmoji(cellChildren) {
-    const icons = {
+export function replaceEmoji(cellChildren: ReactNode): { content: ReactNode; hasIcon: boolean } {
+    const emojiIcons: Record<string, EmojiIconMeta> = {
         '✅': { name: 'yes', variant: 'success', 'aria-label': 'positive' },
         '❌': { name: 'no', variant: 'error', 'aria-label': 'negative' },
     }
-    const iconRe = new RegExp(`^(${Object.keys(icons).join('|')})`, 'g')
+    const iconRe = new RegExp(`^(${Object.keys(emojiIcons).join('|')})`, 'g')
     let children = isString(cellChildren) ? [cellChildren] : cellChildren
     let hasIcon = false
     if (Array.isArray(children)) {
-        children = children.map((child, i) => {
+        const childArray = children
+        children = childArray.map((child, i) => {
             if (isString(child)) {
-                const icon = icons[child.trim()]
+                const icon = emojiIcons[child.trim()]
                 if (icon) {
                     hasIcon = true
                     return (
                         <Icon
                             {...icon}
-                            inline={i < children.length}
+                            inline={i < childArray.length}
                             aria-hidden={undefined}
                             key={i}
                         />
@@ -119,7 +120,7 @@ export function replaceEmoji(cellChildren) {
                     const [, iconName, text] = child.split(iconRe)
                     return (
                         <Fragment key={i}>
-                            <Icon {...icons[iconName]} aria-hidden={undefined} inline={true} />
+                            <Icon {...emojiIcons[iconName]} aria-hidden={undefined} inline={true} />
                             {text.replace(/^\s+/g, '')}
                         </Fragment>
                     )
