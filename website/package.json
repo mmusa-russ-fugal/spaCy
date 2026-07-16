@@ -13,6 +13,7 @@
     "prettier": "prettier . --write"
   },
   "dependencies": {
+    "@blockly/field-multilineinput": "^13.1.0",
     "@codemirror/lang-python": "^6.1.0",
     "@docsearch/react": "^3.9.0",
     "@jupyterlab/services": "^3.2.1",
@@ -29,6 +30,7 @@
     "@uiw/codemirror-themes": "^4.19.3",
     "@uiw/react-codemirror": "^4.19.3",
     "acorn": "^8.8.1",
+    "blockly": "^13.1.1",
     "classnames": "^2.3.2",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.2.10",
