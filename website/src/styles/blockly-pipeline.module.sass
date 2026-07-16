@@ -43,6 +43,27 @@
         fill: initial
         max-width: none
 
+    // While a field is being edited Blockly overlays an HTML <input>/<textarea>
+    // over the SVG-rendered field; the widget div is injected inside this
+    // canvas host, so these overrides are scoped to `.canvas` (CSS Modules
+    // reject a purely-global selector). The site-wide
+    // `input, button { background: transparent }` rule (layout.sass) leaks into
+    // that editor and lets the SVG field text show through as a ghosted/doubled
+    // copy; restore an opaque editor background.
+    :global(input.blocklyHtmlInput), :global(textarea.blocklyHtmlInput)
+        background-color: #fff
+
+    // The multiline patterns (JSONL) editor is a <textarea> that soft-wraps
+    // long lines, but @blockly/field-multilineinput sizes the editor box from
+    // the number of newline-delimited lines (measured on maxDisplayLength-
+    // truncated text). A wrapped long line therefore overflows the fixed-height
+    // box, which has `overflow: hidden`, so the text is clipped with no way to
+    // scroll. Treat it like a code editor: no soft wrap, scroll instead, so
+    // every line stays reachable and the box height matches its line count.
+    :global(textarea.blocklyHtmlTextAreaInput)
+        white-space: pre
+        overflow: auto
+
 .warnings
     list-style: none
     margin: 0

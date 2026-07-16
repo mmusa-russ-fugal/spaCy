@@ -186,3 +186,26 @@
 .injectionDiv svg[display="none"] {
   display: none;
 }
+
+/* While a field is being edited Blockly overlays an HTML <input>/<textarea>
+   over the SVG-rendered field. Tailwind v4's Preflight resets every form
+   control to `background-color: transparent`, so the SVG field text (drawn
+   underneath) shows straight through the editor as a ghosted/doubled copy.
+   Restore an opaque editor background (the element+class selector also wins
+   over Blockly's own runtime-injected stylesheet regardless of load order). */
+input.blocklyHtmlInput,
+textarea.blocklyHtmlInput {
+  background-color: #fff;
+}
+
+/* The multiline patterns (JSONL) editor is a <textarea> that soft-wraps long
+   lines, but @blockly/field-multilineinput sizes the editor box from the
+   number of newline-delimited lines (measured on maxDisplayLength-truncated
+   text). A wrapped long line therefore overflows the fixed-height box, which
+   has `overflow: hidden`, so the text is clipped with no way to scroll. Treat
+   it like a code editor: no soft wrap, scroll instead, so every line stays
+   reachable and the box height matches its line count. */
+textarea.blocklyHtmlTextAreaInput {
+  white-space: pre;
+  overflow: auto;
+}
