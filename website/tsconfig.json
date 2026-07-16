@@ -1,7 +1,8 @@
 {
     "compilerOptions": {
         "target": "ES2017",
-        "lib": ["dom", "dom.iterable", "esnext"],
+        "lib": ["dom", "dom.iterable", "esnext", "webworker"],
+        "types": ["node", "react", "react-dom", "mdx", "@serwist/next/typings"],
         "allowJs": true,
         "skipLibCheck": true,
         "strict": false,
@@ -16,5 +17,5 @@
         "incremental": true
     },
     "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-    "exclude": ["node_modules"]
+    "exclude": ["node_modules", "public/sw.js", "public/sw.js.map"]
 }
