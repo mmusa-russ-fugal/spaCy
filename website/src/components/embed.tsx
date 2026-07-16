@@ -39,6 +39,11 @@ const YouTube = ({ id, ratio = '16x9', className }: YouTubeProps) => {
     )
 }
 
+// React 19 renders the camelCase `frameBorder` prop verbatim, so the original
+// lowercase `frameborder` attribute (passed through as an unknown attribute)
+// is kept via a spread to stay byte-identical with the previous output.
+const legacyFrameBorder = { frameborder: 'no' }
+
 const SoundCloud = ({ id, color = '09a3d5', title }: SoundCloudProps) => {
     const url = `https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/${id}&color=%23${color}&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`
     return (
@@ -48,7 +53,7 @@ const SoundCloud = ({ id, color = '09a3d5', title }: SoundCloudProps) => {
                 width="100%"
                 height={166}
                 scrolling="no"
-                frameBorder="no"
+                {...legacyFrameBorder}
                 allow="autoplay"
                 src={url}
             />
