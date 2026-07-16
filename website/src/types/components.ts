@@ -12,6 +12,7 @@ import type {
     MouseEventHandler,
     ReactNode,
 } from 'react'
+import type { ImageProps as NextImageProps } from 'next/image'
 import type {
     AlertVariant,
     ButtonVariant,
@@ -258,9 +259,13 @@ export interface StandaloneProps {
     [key: string]: unknown
 }
 
-export interface ImageFillProps {
+/**
+ * Everything except `image` is forwarded to `next/image` (with `src` and
+ * `fill` supplied by the component), so the pass-through is typed as the
+ * remaining `next/image` props rather than an open index signature.
+ */
+export interface ImageFillProps extends Omit<NextImageProps, 'src' | 'fill'> {
     image: { src: string; width: number; height: number }
-    [key: string]: unknown
 }
 
 export interface GoogleSheetProps {

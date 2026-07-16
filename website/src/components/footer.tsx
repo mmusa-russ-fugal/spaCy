@@ -1,5 +1,3 @@
-import React from 'react'
-import PropTypes from 'prop-types'
 import classNames from 'classnames'
 import SVG from 'react-inlinesvg'
 
@@ -9,8 +7,9 @@ import Newsletter from './newsletter'
 import explosionLogo from '../images/explosion.svg'
 import classes from '../styles/footer.module.sass'
 import siteMetadata from '../../meta/site.json'
+import type { FooterProps } from '../types'
 
-export default function Footer({ wide = false }) {
+export default function Footer({ wide = false }: FooterProps) {
     const { companyUrl, company, footer, newsletter } = siteMetadata
     return (
         <footer className={classes.root}>
@@ -29,7 +28,7 @@ export default function Footer({ wide = false }) {
                         </ul>
                     </section>
                 ))}
-                <section className={wide ? null : classes.full}>
+                <section className={wide ? undefined : classes.full}>
                     <ul className={classes.column}>
                         <li className={classes.label}>Stay in the loop!</li>
                         <li>Receive updates about new releases, tutorials and more.</li>
@@ -55,8 +54,4 @@ export default function Footer({ wide = false }) {
             </div>
         </footer>
     )
-}
-
-Footer.propTypes = {
-    wide: PropTypes.bool,
 }
