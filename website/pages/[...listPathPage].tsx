@@ -8,15 +8,7 @@ import { remarkPlugins, rehypePlugins } from '../plugins/index.mjs'
 
 import recordSection from '../meta/recordSections'
 import { sidebarUsageFlat } from '../meta/sidebarFlat'
-
-type ApiDetails = {
-    stringName: string | null
-    baseClass: {
-        title: string
-        slug: string
-    } | null
-    trainable: boolean | null
-}
+import type { ApiDetails } from '../src/types/page-context'
 
 export type PropsPageBase = {
     /**
