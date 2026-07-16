@@ -1,12 +1,24 @@
-import React, { Fragment, useState } from 'react'
+import React, { Fragment, useState, type ComponentType } from 'react'
 
-import { Quickstart, QS } from '../components/quickstart'
+import { Quickstart as QuickstartUntyped, QS as QSUntyped } from '../components/quickstart'
+import type {
+    LanguageInfo,
+    QSProps,
+    QuickstartGroup,
+    QuickstartModelsWidgetProps,
+    QuickstartProps,
+} from '../types'
 import models from '../../meta/languages.json'
 
-const DEFAULT_LANG = 'en'
-const DEFAULT_OPT = 'efficiency'
+// `quickstart.js` is not converted yet; its inferred props are too narrow
+// (e.g. `data: never[]`), so type it via the curated props at this boundary.
+const Quickstart = QuickstartUntyped as ComponentType<QuickstartProps>
+const QS = QSUntyped as ComponentType<QSProps>
 
-const data = [
+const DEFAULT_LANG = 'en'
+const DEFAULT_OPT: string = 'efficiency'
+
+const data: QuickstartGroup[] = [
     {
         id: 'lang',
         title: 'Language',
@@ -55,15 +67,17 @@ const data = [
     },
 ]
 
-const QuickstartInstall = ({ id, title, description, children }) => {
+const QuickstartInstall = ({ id, title, description, children }: QuickstartModelsWidgetProps) => {
     const [lang, setLang] = useState(DEFAULT_LANG)
     const [efficiency, setEfficiency] = useState(DEFAULT_OPT === 'efficiency')
-    const setters = {
+    const setters: QuickstartProps['setters'] = {
         lang: setLang,
-        optimize: (v) => setEfficiency(v.includes('efficiency')),
+        optimize: (v: string | string[]) => setEfficiency(v.includes('efficiency')),
     }
 
-    const languages = models.languages.filter(({ models }) => !!models)
+    const languages = (models.languages as LanguageInfo[]).filter(
+        (lang): lang is LanguageInfo & { models: string[] } => !!lang.models
+    )
     data[0].dropdown = languages
         .sort((a, b) => a.name.localeCompare(b.name))
         .map(({ code, name }) => ({

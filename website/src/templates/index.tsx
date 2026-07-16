@@ -1,5 +1,4 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+import React, { type ComponentType } from 'react'
 import useOnlineStatus from '@rehooks/online-status'
 import classNames from 'classnames'
 
@@ -8,20 +7,36 @@ import Docs from './docs'
 import Universe from './universe'
 
 // Components
-import Navigation from '../components/navigation'
+import NavigationUntyped from '../components/navigation'
 import Progress from '../components/progress'
-import Footer from '../components/footer'
-import SEO from '../components/seo'
+import FooterUntyped from '../components/footer'
+import SEOUntyped from '../components/seo'
 import Link from '../components/link'
 import { InlineCode } from '../components/inlineCode'
 import Alert from '../components/alert'
-import Search from '../components/search'
+import SearchUntyped from '../components/search'
+import type {
+    DocsPageContext,
+    FooterProps,
+    LayoutProps,
+    NavigationProps,
+    SEOProps,
+    SearchProps,
+    UniversePageContext,
+} from '../types'
 
 import siteMetadata from '../../meta/site.json'
 import { nightly, legacy } from '../../meta/dynamicMeta.mjs'
 import { remarkComponents } from '../remark'
 
-const AlertSpace = ({ nightly, legacy }) => {
+// These components are not converted yet; their inferred props mark every
+// prop required, so type them via the curated props at this boundary.
+const Navigation = NavigationUntyped as ComponentType<NavigationProps>
+const Footer = FooterUntyped as ComponentType<FooterProps>
+const SEO = SEOUntyped as ComponentType<SEOProps>
+const Search = SearchUntyped as ComponentType<SearchProps>
+
+const AlertSpace = ({ nightly, legacy }: { nightly?: boolean; legacy?: boolean }) => {
     const isOnline = useOnlineStatus()
     return (
         <>
@@ -63,30 +78,16 @@ const navAlert = (
     </Link>
 )
 
-class Layout extends React.Component {
+interface LayoutState {
+    scope: Record<string, unknown>
+}
+
+class Layout extends React.Component<LayoutProps, LayoutState> {
     static defaultProps = {
         scope: {},
     }
 
-    static propTypes = {
-        scope: PropTypes.object.isRequired,
-        pageContext: PropTypes.shape({
-            title: PropTypes.string,
-            section: PropTypes.string,
-            teaser: PropTypes.string,
-            source: PropTypes.string,
-            isIndex: PropTypes.bool.isRequired,
-            theme: PropTypes.string,
-            searchExclude: PropTypes.bool,
-            next: PropTypes.shape({
-                title: PropTypes.string.isRequired,
-                slug: PropTypes.string.isRequired,
-            }),
-        }),
-        children: PropTypes.node,
-    }
-
-    constructor(props) {
+    constructor(props: LayoutProps) {
         super(props)
         // NB: Compiling the scope here instead of in render() is super
         // important! Otherwise, it triggers unnecessary rerenders of ALL
@@ -97,9 +98,11 @@ class Layout extends React.Component {
     render() {
         const { location, children } = this.props
         const { title, section, sectionTitle, teaser, theme, searchExclude } = this.props
-        const uiTheme = nightly ? 'nightly' : legacy ? 'legacy' : theme ?? 'blue'
+        const uiTheme = nightly ? 'nightly' : legacy ? 'legacy' : (theme ?? 'blue')
         const bodyClass = classNames(`theme-${uiTheme}`, { 'search-exclude': !!searchExclude })
-        const isDocs = ['usage', 'models', 'api', 'styleguide'].includes(section)
+        const isDocs = (
+            ['usage', 'models', 'api', 'styleguide'] as (string | null | undefined)[]
+        ).includes(section)
 
         return (
             <div className={bodyClass}>
@@ -121,9 +124,9 @@ class Layout extends React.Component {
                     <Progress />
                 </Navigation>
                 {isDocs ? (
-                    <Docs pageContext={this.props}>{children}</Docs>
+                    <Docs pageContext={this.props as DocsPageContext}>{children}</Docs>
                 ) : section === 'universe' ? (
-                    <Universe pageContext={this.props} location={location} />
+                    <Universe pageContext={this.props as UniversePageContext} location={location} />
                 ) : (
                     <div>
                         {children}

@@ -116,8 +116,15 @@ const Quickstart = ({
                         help,
                         hidden,
                     }) => {
-                        // Optional function that's called with the value
-                        const setterFunc = setters[id] || (() => {})
+                        // Optional function that's called with the value.
+                        // QuickstartSetter is a union of narrow setters; which
+                        // shape each id receives (string vs string[]) is a
+                        // runtime pairing guaranteed by the widget that
+                        // registered it, so calls are typed at the widest
+                        // signature here rather than narrowed per call site.
+                        const setterFunc = (setters[id] || (() => {})) as (
+                            value: string | string[]
+                        ) => void
                         // Check if dropdown should be shown
                         const dropdownGetter = showDropdown[id] || (() => true)
                         return hidden ? null : (

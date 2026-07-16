@@ -13,10 +13,10 @@ import { siteUrl } from '../../meta/dynamicMeta.mjs'
 import type { SEOProps } from '../types'
 
 function getPageTitle(
-    title: string | undefined,
+    title: string | null | undefined,
     sitename: string,
     slogan: string,
-    sectionTitle: string | undefined,
+    sectionTitle: string | null | undefined,
     nightly: boolean | undefined,
     legacy: boolean | undefined
 ) {
@@ -34,7 +34,7 @@ function getPageTitle(
 // default returns the imported `StaticImageData` object rather than a URL
 // string, which renders as "[object Object]" in the built meta tags.
 function getImage(
-    section: string | undefined,
+    section: string | null | undefined,
     nightly: boolean | undefined,
     legacy: boolean | undefined
 ): string | StaticImageData {

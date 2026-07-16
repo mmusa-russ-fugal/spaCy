@@ -145,6 +145,8 @@ export interface MainProps {
     theme?: string
     footer?: ReactNode
     children?: ReactNode
+    /** Passed by the templates but currently unused by `main.js`. */
+    section?: string | null
 }
 
 export interface HeadlineProps {
@@ -234,7 +236,8 @@ export interface IframeProps {
     title: string
     src?: string
     html?: string
-    width?: number
+    /** `templates/universe.js` passes the string `"100%"`. */
+    width?: number | string
     height?: number
 }
 
@@ -378,7 +381,8 @@ export interface SidebarProps {
 export interface NavigationProps {
     title: string
     items?: NavigationItem[]
-    section?: string
+    /** `templates/index.js` passes explicit `null` from the page context. */
+    section?: string | null
     search?: ReactNode
     alert?: ReactNode
     children?: ReactNode
@@ -395,8 +399,9 @@ export interface SearchProps {
 export interface SEOProps {
     description?: string
     title?: string
-    section?: string
-    sectionTitle?: string
+    /** `templates/index.js` passes explicit `null` from the page context. */
+    section?: string | null
+    sectionTitle?: string | null
     nightly?: boolean
     legacy?: boolean
     lang?: string
@@ -406,7 +411,8 @@ export interface TitleProps {
     title?: string
     tag?: string
     teaser?: StringOrNode
-    source?: string
+    /** `templates/docs.js` passes an explicit `null` when a page has no source. */
+    source?: string | null
     image?: string
     version?: string
     id?: string
@@ -545,6 +551,15 @@ export interface QuickstartGroup {
     hidden?: boolean
 }
 
+/**
+ * Handler for one Quickstart group's value changes. The widget calls it with
+ * `string[]` for checkbox/radio option groups and with `string` for dropdown
+ * selections and free-text inputs, so callers may type their handler for the
+ * shape their group actually produces (a bare `useState` setter works).
+ */
+export type QuickstartSetter =
+    ((value: string) => void) | ((value: string[]) => void) | ((value: string | string[]) => void)
+
 export interface QuickstartProps {
     data?: QuickstartGroup[]
     title?: StringOrNode
@@ -553,7 +568,7 @@ export interface QuickstartProps {
     download?: string
     rawContent?: string | null
     id?: string
-    setters?: Record<string, (value: string | string[]) => void>
+    setters?: Record<string, QuickstartSetter>
     showDropdown?: Record<string, () => boolean>
     hidePrompts?: boolean
     small?: boolean
@@ -564,7 +579,8 @@ export interface QuickstartProps {
 
 export interface QSProps {
     children?: ReactNode
-    prompt?: string
+    /** Prompt style (`'bash'`/`'python'`); `false` disables the prompt. */
+    prompt?: string | false
     divider?: boolean
     comment?: boolean
     [key: string]: unknown

@@ -1,15 +1,29 @@
-import React from 'react'
+import React, { type ComponentType } from 'react'
 
 import Link from '../components/link'
 import { InlineCode } from '../components/inlineCode'
-import { Table, Tr, Th, Td } from '../components/table'
+import { Table as TableUntyped, Tr, Th, Td as TdUntyped } from '../components/table'
 import { Ul, Li } from '../components/list'
-import Infobox from '../components/infobox'
+import InfoboxUntyped from '../components/infobox'
 import { github, join } from '../components/util'
+import type {
+    InfoboxProps,
+    LanguageDependency,
+    LanguageInfo,
+    LanguageRowProps,
+    TableProps,
+    TdProps,
+} from '../types'
+
+// `table.js` / `infobox.js` are not converted yet; their inferred props mark
+// every prop required, so type them via the curated props at this boundary.
+const Table = TableUntyped as ComponentType<TableProps>
+const Td = TdUntyped as ComponentType<TdProps>
+const Infobox = InfoboxUntyped as ComponentType<InfoboxProps>
 
 import models from '../../meta/languages.json'
 
-const Language = ({ name, code, models }) => (
+const Language = ({ name, code, models }: LanguageRowProps) => (
     <Tr>
         <Td>{name}</Td>
         <Td>
@@ -33,14 +47,17 @@ const Language = ({ name, code, models }) => (
 )
 
 const Languages = () => {
-    const langs = models.languages
+    const langs: LanguageInfo[] = models.languages
     const withModels = langs
         .filter(({ models }) => models && !!models.length)
         .sort((a, b) => a.name.localeCompare(b.name))
     const withoutModels = langs
         .filter(({ models }) => !models || !models.length)
         .sort((a, b) => a.name.localeCompare(b.name))
-    const withDeps = langs.filter(({ dependencies }) => dependencies && dependencies.length)
+    const withDeps = langs.filter(
+        (lang): lang is LanguageInfo & { dependencies: LanguageDependency[] } =>
+            !!(lang.dependencies && lang.dependencies.length)
+    )
     return (
         <>
             <Table>

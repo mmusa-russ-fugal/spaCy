@@ -1,13 +1,14 @@
 import React from 'react'
 
 import { Ul, Li } from '../components/list'
+import type { LanguageInfo } from '../types'
 
 import models from '../../meta/languages.json'
 
 /**
  * Compute the overall total counts of models and languages
  */
-function getCounts(langs = []) {
+function getCounts(langs: LanguageInfo[] = []) {
     return {
         langs: langs.length,
         modelLangs: langs.filter(({ models }) => models && !!models.length).length,
