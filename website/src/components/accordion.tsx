@@ -1,11 +1,17 @@
-import React, { useState, useEffect } from 'react'
-import PropTypes from 'prop-types'
+import { useState, useEffect } from 'react'
 import classNames from 'classnames'
 
 import Link from './link'
 import classes from '../styles/accordion.module.sass'
+import type { AccordionProps } from '../types'
 
-export default function Accordion({ title, id, expanded = false, spaced = false, children }) {
+export default function Accordion({
+    title,
+    id,
+    expanded = false,
+    spaced = false,
+    children,
+}: AccordionProps) {
     const [isExpanded, setIsExpanded] = useState(true)
     const rootClassNames = classNames(classes.root, {
         [classes.spaced]: !!spaced,
@@ -24,7 +30,7 @@ export default function Accordion({ title, id, expanded = false, spaced = false,
                 <h4>
                     <button
                         className={classes.button}
-                        aria-expanded={String(isExpanded)}
+                        aria-expanded={isExpanded}
                         onClick={() => setIsExpanded(!isExpanded)}
                     >
                         <span>
@@ -57,10 +63,4 @@ export default function Accordion({ title, id, expanded = false, spaced = false,
             </div>
         </section>
     )
-}
-
-Accordion.propTypes = {
-    title: PropTypes.string,
-    id: PropTypes.string,
-    children: PropTypes.node.isRequired,
 }

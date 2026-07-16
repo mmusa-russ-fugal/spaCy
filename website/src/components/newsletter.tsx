@@ -1,9 +1,7 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-
 import classes from '../styles/newsletter.module.sass'
+import type { NewsletterProps } from '../types'
 
-export default function Newsletter({ user, id, list }) {
+export default function Newsletter({ user, id, list }: NewsletterProps) {
     const action = `//${user}.list-manage.com/subscribe/post?u=${id}&amp;id=${list}`
     return (
         <form
@@ -16,7 +14,7 @@ export default function Newsletter({ user, id, list }) {
         >
             {/* MailChimp spam protection */}
             <div style={{ position: 'absolute', left: '-5000px' }} aria-hidden="true">
-                <input type="text" name={`b_${id}_${list}`} tabIndex="-1" defaultValue="" />
+                <input type="text" name={`b_${id}_${list}`} tabIndex={-1} defaultValue="" />
             </div>
 
             <div className={classes.root}>
@@ -39,10 +37,4 @@ export default function Newsletter({ user, id, list }) {
             </div>
         </form>
     )
-}
-
-Newsletter.propTypes = {
-    user: PropTypes.string.isRequired,
-    id: PropTypes.string.isRequired,
-    list: PropTypes.string.isRequired,
 }
