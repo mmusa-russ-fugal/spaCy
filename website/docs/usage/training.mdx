@@ -435,6 +435,15 @@ existing weights. This lets you include an already trained component in your
 pipeline, or update a trained component with more data specific to your use
 case.
 
+{/* BLOCKLY-PIPELINE-BUILDER: preset "training-config" (src/widgets/blockly/presets.ts).
+"config" mode complementing the <QuickstartTraining /> widget in #quickstart:
+compose the [nlp] pipeline and [components] blocks visually, choose per
+component between factory (train from scratch), source (copy from a trained
+pipeline) and frozen_components, then download the generated config.cfg
+excerpt (INI output). */}
+
+<BlocklyPipelineBuilder preset="training-config" title="Try it: assemble your training pipeline" />
+
 ```ini {title="config.cfg (excerpt)"}
 [components]
 
