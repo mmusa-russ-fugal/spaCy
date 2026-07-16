@@ -672,3 +672,105 @@ Rendered output differs across the phase only by the one invisible comment
 node above — safe in both directions. Netlify: standard
 restore-previous-deploy; no service-worker implications (the Phase 1 kill
 switch is untouched).
+
+---
+
+## Phase 5 — PWA via @serwist/next (replaces the Phase 1 kill switch)
+
+Branch: `migration/phase-5-pwa-serwist`
+
+The site is a PWA again: `@serwist/next` 9.5.11 (+ `serwist` 9.5.11)
+compiles `src/sw.ts` into `public/sw.js` at build time, precaching all
+`_next/static` assets and `public/` files and runtime-caching pages for
+offline use. The generated worker ships at the **same URL** (`/sw.js`) as
+the Phase 1 kill switch, which is deleted in the same commit — returning
+visitors' browsers re-fetch `/sw.js` on navigation, so the kill-switch
+worker (or the old next-pwa worker, for visitors who never returned since
+Phase 1) is superseded by the Serwist worker in one deploy. Scope is
+offline/runtime caching + installability only; **no web push/VAPID** — a
+static export has no server to hold subscriptions. Offline caveat: only
+pages visited while the worker controls the client are available offline
+— there is no offline fallback page, and the very first page of a first
+visit loads before the worker takes control, so it is not cached until a
+later controlled visit.
+
+Landed versions: `@serwist/next` ^9 (9.5.11), `serwist` ^9 (9.5.11).
+Requires webpack builds — satisfied by Phase 4's `--webpack`
+scripts; this dependency is why webpack-first was locked there.
+
+### What changed
+
+**The swap seam (for replacing this PWA implementation later):** the
+entire integration is (1) the `withSerwist()` wrapper in
+`next.config.mjs` and (2) the worker source `src/sw.ts`. Nothing else in
+the site imports Serwist; registration is injected into the client bundle
+by the wrapper. To swap in a different PWA implementation, replace those
+two files and keep serving *some* worker at `/sw.js`.
+
+- `src/sw.ts` — worker source: `new Serwist({ precacheEntries:
+  self.__SW_MANIFEST, precacheOptions: { cleanupOutdatedCaches: true },
+  skipWaiting: true, clientsClaim: true, runtimeCaching: defaultCache
+  }).addEventListeners()`. `defaultCache` (from `@serwist/next/worker`)
+  gives NetworkFirst pages / cache-first hashed assets;
+  `cleanupOutdatedCaches` purges legacy `-precache-` caches from the
+  pre-Phase-1 next-pwa/workbox era for stragglers the kill switch never
+  reached.
+- `next.config.mjs` — config composed as `withSerwist(withMDX({...}))`
+  with `swSrc: 'src/sw.ts'`, `swDest: 'public/sw.js'`, `disable` in
+  development (dev emits and registers nothing; `/sw.js` 404s in a clean
+  checkout — a stale `public/sw.js` left by a prior production build is
+  served, but is inert since nothing registers it).
+- `tsconfig.json` — `webworker` lib, explicit `types` array (`node`,
+  `react`, `react-dom`, `mdx` — the ambient types the codebase already
+  relied on via auto-inclusion — plus `@serwist/next/typings`), exclude
+  the generated `public/sw.js`.
+- `public/sw.js` (kill switch) **deleted**; `public/sw.js`,
+  `public/sw.js.map`, `public/swe-worker*` gitignored (build artifacts).
+- `netlify.toml` — `/sw.js` served with `Cache-Control: no-cache,
+  no-store, must-revalidate` (+ explicit Content-Type). With
+  `output: 'export'`, `headers()` in next.config does not apply, so this
+  must live at the hosting layer. Any future host must replicate it, or
+  SW updates (including any future kill switch) stall behind HTTP caches.
+- PWA metadata: unchanged — `public/manifest.webmanifest` (name, colors,
+  `display: minimal-ui`, 192/256/384/512 icons, all present in
+  `public/icons/`) was already linked from `pages/_app.tsx`.
+
+### How to verify
+
+1. `npm ci && npm run build` green; `out/sw.js` is the Serwist worker
+   (contains `precacheEntries:[{'revision':...` — 141 entries: 93
+   `_next/static` + icons/images/manifest), not the kill switch.
+2. `find out -name '*.html' | sort`: 319 pages, identical to the Phase 4
+   baseline list. Normalized spot-diff (`/`, `/usage/spacy-101`) vs the
+   Phase 4 build tree: byte-identical after buildId/chunk-hash
+   normalization — registration lives inside the existing `main-*.js`
+   chunk (`window.serwist` + `register('/sw.js', { scope: '/' })`), no
+   new script tags.
+3. Headless-Chromium runtime check against `out/` over localhost HTTP:
+   `navigator.serviceWorker.ready` resolves (scriptURL `/sw.js`, scope
+   `/`); `caches` contains `serwist-precache-v2-...` with 141 entries;
+   with the static server **stopped** and the browser context offline,
+   reloading `/usage/spacy-101` and navigating back to `/` (both visited
+   while controlled) render fully from SW caches with correct titles.
+4. `npx tsc --noEmit`: 24 errors, list identical to the Phase 4 baseline
+   (`src/sw.ts` typechecks clean). `npm run lint`: exact parity (same 3
+   pre-existing findings; `src/sw.ts` clean).
+5. Dev check: `npm run dev` → `GET /sw.js` 404 (in a clean checkout; a
+   stale `public/sw.js` from a prior production build is served instead,
+   inert because nothing registers it), no `serwist` string in the
+   served HTML, `public/sw.js` not (re)generated.
+
+### Rollback
+
+If the PWA misbehaves in production, do **not** simply revert to a
+missing `/sw.js` — visitors who received the Serwist worker would keep
+serving stale caches. Rollback = restore the Phase 1 kill-switch worker
+at `public/sw.js` (from git history: `git show
+3ecc7b0:website/public/sw.js`), remove the `withSerwist()` wrapper in
+`next.config.mjs` (or set `disable: true`), and redeploy: returning
+browsers re-fetch `/sw.js` (the netlify.toml no-cache header exists
+precisely to keep this path fast) and the kill switch unregisters and
+clears all caches, exactly as designed in Phase 1. A full `git revert`
+of this phase's commits does all of that, *including* restoring the kill
+switch: reverting the swap commit brings back `public/sw.js` (and drops
+its `.gitignore` entry), so the revert is by itself a complete rollback.
