@@ -20,6 +20,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { generateConfig } from "@/lib/cfggen"
 import { presets } from "@/lib/presets"
 import { generatePython } from "@/lib/pygen"
+import { clearShareHash, readSharedWorkspace } from "@/lib/share"
 import { specFromWorkspace } from "@/lib/spec"
 import { loadWorkspace, saveWorkspace } from "@/lib/storage"
 import { validateSpec } from "@/lib/validate"
@@ -90,11 +91,20 @@ export default function App() {
 
   const handleReady = useCallback((workspace: Blockly.WorkspaceSvg) => {
     workspaceRef.current = workspace
-    const saved = loadWorkspace() ?? presets[0].workspace
+    // A pipeline shared from the docs "Open in Composer" link takes priority
+    // over any locally saved workspace.
+    const shared = readSharedWorkspace()
+    const saved = shared ?? loadWorkspace() ?? presets[0].workspace
     try {
       BlocklyCore.serialization.workspaces.load(saved as never, workspace)
     } catch {
       workspace.clear()
+    }
+    if (shared) {
+      // Consume the fragment so a reload doesn't re-import over later edits,
+      // and frame the imported pipeline.
+      clearShareHash()
+      workspace.zoomToFit()
     }
     setWorkspaceState(BlocklyCore.serialization.workspaces.save(workspace))
   }, [])

@@ -16,6 +16,7 @@ import type { BlocklyPipelineBuilderProps } from '../../types'
 import { generate } from './generators'
 import PRESETS from './presets'
 import type { BuilderPreset } from './presets'
+import { composerHref } from './share'
 import type { BuilderState, PipelineComponentState } from './spec'
 import type { ValidationWarning } from './validate'
 import PipelineBuilderWidget from './widget'
@@ -80,6 +81,7 @@ export default function BlocklyPipelineBuilder({
             rawCode={rawCode}
             codeLang={prismLang}
             download={preset.download}
+            openInComposerHref={composerHref(state)}
             onReset={() => {
                 setState(initialState(preset))
                 setWarnings([])

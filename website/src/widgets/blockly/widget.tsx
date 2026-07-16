@@ -22,6 +22,8 @@ export interface PipelineBuilderWidgetProps {
     codeLang?: string
     /** Filename to offer the raw code as a download, if set. */
     download?: string
+    /** If set, a header link that opens the current pipeline in the composer. */
+    openInComposerHref?: string | null
     onReset?: () => void
     children: ReactNode
 }
@@ -32,6 +34,7 @@ export default function PipelineBuilderWidget({
     rawCode,
     codeLang,
     download,
+    openInComposerHref,
     onReset,
     children,
 }: PipelineBuilderWidgetProps) {
@@ -52,6 +55,17 @@ export default function PipelineBuilderWidget({
         <div className={classes['root']}>
             <header className={classes['header']}>
                 <span className={classes['header-title']}>{title}</span>
+                {openInComposerHref && (
+                    <a
+                        className={classes['reset']}
+                        href={openInComposerHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Open this pipeline in the full Pipeline Composer app"
+                    >
+                        open in composer ↗
+                    </a>
+                )}
                 {onReset && (
                     <button className={classes['reset']} onClick={onReset}>
                         reset
