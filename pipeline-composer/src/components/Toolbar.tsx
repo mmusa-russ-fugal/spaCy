@@ -61,7 +61,11 @@ export function Toolbar({
 
   return (
     <header className="flex h-12 shrink-0 items-center gap-2 border-b px-3">
-      <img src="/spacy-logo.svg" alt="spaCy" className="h-[18px] shrink-0" />
+      <img
+        src={import.meta.env.BASE_URL + "spacy-logo.svg"}
+        alt="spaCy"
+        className="h-[18px] shrink-0"
+      />
       <span aria-hidden="true" className="text-muted-foreground/40">/</span>
       <span className="mr-1 truncate font-heading text-sm font-semibold tracking-tight">
         Pipeline Composer
