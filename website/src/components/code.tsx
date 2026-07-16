@@ -1,5 +1,5 @@
 import React, { Fragment, useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
+import type { ReactElement, ReactNode } from 'react'
 import classNames from 'classnames'
 import rangeParser from 'parse-numeric-range'
 import Prism from 'prismjs'
@@ -23,11 +23,12 @@ import classes from '../styles/code.module.sass'
 import siteMetadata from '../../meta/site.json'
 import { binderBranch } from '../../meta/dynamicMeta.mjs'
 import dynamic from 'next/dynamic'
+import type { CodeProps, JuniperProps } from '../types'
 
 const CLI_GROUPS = ['init', 'debug', 'project', 'ray', 'huggingface-hub']
 
-const splitLines = (children) => {
-    const listChildrenPerLine = []
+const splitLines = (children: ReactNode) => {
+    const listChildrenPerLine: (string | ReactNode[])[] = []
 
     if (typeof children === 'string') {
         listChildrenPerLine.push(...children.split('\n'))
@@ -39,7 +40,7 @@ const splitLines = (children) => {
                 if (typeof child === 'string' && child.includes('\n')) {
                     const listString = child.split('\n')
                     listString.forEach((string, index) => {
-                        listChildrenPerLine[indexLine].push(string)
+                        ;(listChildrenPerLine[indexLine] as ReactNode[]).push(string)
 
                         if (index !== listString.length - 1) {
                             indexLine += 1
@@ -47,11 +48,11 @@ const splitLines = (children) => {
                         }
                     })
                 } else {
-                    listChildrenPerLine[indexLine].push(child)
+                    ;(listChildrenPerLine[indexLine] as ReactNode[]).push(child)
                 }
             })
         } else {
-            listChildrenPerLine[indexLine].push(children)
+            ;(listChildrenPerLine[indexLine] as ReactNode[]).push(children)
             indexLine += 1
             listChildrenPerLine[indexLine] = []
         }
@@ -70,14 +71,14 @@ const splitLines = (children) => {
     ))
 }
 
-function parseArgs(raw) {
-    let args = raw.split(' ').filter((arg) => arg)
-    const result = {}
+function parseArgs(raw: string) {
+    const args = raw.split(' ').filter((arg) => arg)
+    const result: Record<string, string | true | null> = {}
     while (args.length) {
-        let opt = args.shift()
+        const opt = args.shift() as string
         if (opt.length > 1 && opt.startsWith('-')) {
             const isFlag = !args.length || (args[0].length > 1 && args[0].startsWith('-'))
-            result[opt] = isFlag ? true : args.shift()
+            result[opt] = isFlag ? true : (args.shift() as string)
         } else {
             let key = opt
             if (CLI_GROUPS.includes(opt)) {
@@ -91,7 +92,7 @@ function parseArgs(raw) {
     return result
 }
 
-const flattenReact = (children) => {
+const flattenReact = (children: ReactNode): string[] => {
     if (children === null || children === undefined || children === false) {
         return []
     }
@@ -100,14 +101,15 @@ const flattenReact = (children) => {
         return [children]
     }
 
-    if (children.props) {
-        return flattenReact(children.props.children)
+    const element = children as ReactElement<{ children?: ReactNode }>
+    if (element.props) {
+        return flattenReact(element.props.children)
     }
 
-    return children.flatMap(flattenReact)
+    return (children as ReactNode[]).flatMap(flattenReact)
 }
 
-const checkoutForComment = (line) => {
+const checkoutForComment = (line: string) => {
     const lineParts = line.split(' # ')
 
     if (lineParts.length !== 2) {
@@ -118,7 +120,7 @@ const checkoutForComment = (line) => {
         <>
             {lineParts[0]}
             {` `}
-            <span class="token comment">
+            <span className="token comment">
                 {`# `}
                 {lineParts[1]}
             </span>
@@ -126,7 +128,7 @@ const checkoutForComment = (line) => {
     )
 }
 
-const handlePromot = ({ lineFlat, prompt }) => {
+const handlePromot = ({ lineFlat, prompt }: { lineFlat: string; prompt: string }) => {
     const lineWithoutPrompt = lineFlat.slice(prompt.length + 1)
 
     const cliRegex = /^python -m spacy/
@@ -168,7 +170,7 @@ const handlePromot = ({ lineFlat, prompt }) => {
     )
 }
 
-const convertLine = ({ line, prompt, lang }) => {
+const convertLine = ({ line, prompt, lang }: { line: ReactNode; prompt: string; lang: string }) => {
     const lineFlat = flattenReact(line).join('')
     if (lineFlat.startsWith(`${prompt} `)) {
         return handlePromot({ lineFlat, prompt })
@@ -185,7 +187,7 @@ const convertLine = ({ line, prompt, lang }) => {
     )
 }
 
-const addLineHighlight = (children, highlight) => {
+const addLineHighlight = (children: ReactNode[], highlight?: string) => {
     if (!highlight) {
         return children
     }
@@ -210,8 +212,16 @@ const addLineHighlight = (children, highlight) => {
     })
 }
 
-const CodeHighlighted = ({ children, highlight, lang }) => {
-    const [html, setHtml] = useState()
+const CodeHighlighted = ({
+    children,
+    highlight,
+    lang,
+}: {
+    children?: ReactNode
+    highlight?: string
+    lang: string
+}) => {
+    const [html, setHtml] = useState<ReactNode>()
 
     useEffect(
         () =>
@@ -227,25 +237,18 @@ const CodeHighlighted = ({ children, highlight, lang }) => {
     return <>{html}</>
 }
 
-export default class Code extends React.Component {
-    static defaultProps = {
-        lang: 'none',
-        executable: null,
-    }
-
-    static propTypes = {
-        lang: PropTypes.string,
-        title: PropTypes.string,
-        executable: PropTypes.oneOf(['true', 'false', true, false, null]),
-        github: PropTypes.string,
-        prompt: PropTypes.string,
-        highlight: PropTypes.string,
-        className: PropTypes.string,
-        children: PropTypes.node,
-    }
-
+export default class Code extends React.Component<CodeProps> {
     render() {
-        const { lang, title, executable, github, wrap, highlight, className, children } = this.props
+        const {
+            lang = 'none',
+            title,
+            executable = null,
+            github,
+            wrap,
+            highlight,
+            className,
+            children,
+        } = this.props
         const codeClassNames = classNames(classes['code'], className, `language-${lang}`, {
             [classes['wrap']]: !!highlight || !!wrap || lang === 'cli',
             [classes['cli']]: lang === 'cli',
@@ -276,9 +279,20 @@ export default class Code extends React.Component {
     }
 }
 
-const JuniperDynamic = dynamic(() => import('./juniper'))
+// `juniper.js` is intentionally left unconverted (slated for wholesale
+// replacement), so the dynamic import is given an explicit boundary type here
+// instead of relying on inference across the untyped module.
+const JuniperDynamic = dynamic<JuniperProps>(() => import('./juniper'))
 
-const JuniperWrapper = ({ title, lang, children }) => {
+const JuniperWrapper = ({
+    title,
+    lang,
+    children,
+}: {
+    title?: string
+    lang?: string
+    children?: ReactNode
+}) => {
     const { binderUrl, binderVersion } = siteMetadata
     const juniperTitle = title || 'Editable Code'
     return (

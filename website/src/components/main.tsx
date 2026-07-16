@@ -1,6 +1,5 @@
-import React from 'react'
-import PropTypes from 'prop-types'
 import classNames from 'classnames'
+import type { StaticImageData } from 'next/image'
 
 import patternBlue from '../images/pattern_blue.png'
 import patternGreen from '../images/pattern_green.png'
@@ -8,8 +7,9 @@ import patternPurple from '../images/pattern_purple.png'
 import patternNightly from '../images/pattern_nightly.png'
 import patternLegacy from '../images/pattern_legacy.png'
 import classes from '../styles/main.module.sass'
+import type { ContentProps, MainProps } from '../types'
 
-const patterns = {
+const patterns: Record<string, StaticImageData> = {
     blue: patternBlue,
     green: patternGreen,
     purple: patternPurple,
@@ -17,7 +17,7 @@ const patterns = {
     legacy: patternLegacy,
 }
 
-export const Content = ({ Component = 'div', className, children }) => (
+export const Content = ({ Component = 'div', className, children }: ContentProps) => (
     <Component className={classNames(classes.content, className)}>{children}</Component>
 )
 
@@ -28,7 +28,7 @@ export default function Main({
     theme,
     footer,
     children,
-}) {
+}: MainProps) {
     const pattern = patterns[theme ?? 'blue']
     const mainClassNames = classNames(classes.root, {
         [classes['with-sidebar']]: sidebar,
@@ -44,12 +44,4 @@ export default function Main({
             {footer}
         </main>
     )
-}
-
-Main.propTypes = {
-    sidebar: PropTypes.bool,
-    asides: PropTypes.bool,
-    wrapContent: PropTypes.bool,
-    theme: PropTypes.string,
-    footer: PropTypes.node,
 }
