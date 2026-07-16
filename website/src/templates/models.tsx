@@ -1,25 +1,63 @@
-import React, { useEffect, useState, useMemo, Fragment } from 'react'
+import React, {
+    useEffect,
+    useState,
+    useMemo,
+    Fragment,
+    type ComponentType,
+    type ReactNode,
+} from 'react'
 
-import Title from '../components/title'
-import Section from '../components/section'
+import TitleUntyped from '../components/title'
+import SectionUntyped from '../components/section'
 import Button from '../components/button'
-import Aside from '../components/aside'
+import AsideUntyped from '../components/aside'
 import { InlineCode } from '../components/inlineCode'
-import CodeBlock from '../components/codeBlock'
-import { Table, Tr, Td, Th } from '../components/table'
+import CodeBlockUntyped from '../components/codeBlock'
+import { Table as TableUntyped, Tr, Td as TdUntyped, Th } from '../components/table'
 import Tag from '../components/tag'
 import { H2, Label } from '../components/typography'
 import Icon from '../components/icon'
 import Link, { OptionalLink } from '../components/link'
-import Infobox from '../components/infobox'
+import InfoboxUntyped from '../components/infobox'
 import Accordion from '../components/accordion'
 import { isString, isEmptyObj, join, arrayToObj, abbrNum } from '../components/util'
-import MarkdownToReact from '../components/markdownToReactDynamic'
+import MarkdownToReactUntyped from '../components/markdownToReactDynamic'
+import type {
+    AsideProps,
+    MarkdownToReactProps,
+    CodeProps,
+    FormattedModelAccuracy,
+    FormattedModelMeta,
+    InfoboxProps,
+    ModelCompatibility,
+    ModelEntryProps,
+    ModelPerformance,
+    ModelSource,
+    ModelVectorsMeta,
+    ModelsTemplateProps,
+    RawModelMeta,
+    SectionProps,
+    TableProps,
+    TdProps,
+    TitleProps,
+} from '../types'
 
 import siteMetadata from '../../meta/site.json'
 import languages from '../../meta/languages.json'
 
-const COMPONENT_LINKS = {
+// These components are not converted yet; their inferred props mark every
+// prop required, so type them via the curated props at this boundary.
+const Title = TitleUntyped as ComponentType<TitleProps>
+const Section = SectionUntyped as ComponentType<SectionProps>
+const Aside = AsideUntyped as ComponentType<AsideProps>
+const CodeBlock = CodeBlockUntyped as ComponentType<CodeProps>
+const Table = TableUntyped as ComponentType<TableProps>
+const Td = TdUntyped as ComponentType<TdProps>
+const Infobox = InfoboxUntyped as ComponentType<InfoboxProps>
+// (double cast: the dynamic JS wrapper infers nonsensical `props: string`)
+const MarkdownToReact = MarkdownToReactUntyped as unknown as ComponentType<MarkdownToReactProps>
+
+const COMPONENT_LINKS: Record<string, string> = {
     tok2vec: '/api/tok2vec',
     transformer: '/api/transformer',
     tagger: '/api/tagger',
@@ -31,7 +69,7 @@ const COMPONENT_LINKS = {
     morphologizer: '/api/morphologizer',
 }
 
-const MODEL_META = {
+const MODEL_META: Record<string, string> = {
     core: 'Vocabulary, syntax, entities, vectors',
     core_no_vectors: 'Vocabulary, syntax, entities',
     dep: 'Vocabulary, syntax',
@@ -80,26 +118,26 @@ const MODEL_META = {
     download_link: 'Download link for the pipeline',
 }
 
-const LABEL_SCHEME_META = {
+const LABEL_SCHEME_META: Record<string, string> = {
     tagger: 'Part-of-speech tags via Token.tag_',
     parser: 'Dependency labels via Token.dep_',
     ner: 'Named entity labels',
 }
 
-const MARKDOWN_COMPONENTS = {
-    code: InlineCode,
-}
-
-function getModelComponents(name) {
+function getModelComponents(name: string) {
     const [lang, type, genre, size] = name.split('_')
     return { lang, type, genre, size }
 }
 
-function isStableVersion(v) {
+function isStableVersion(v: string) {
     return !v.includes('a') && !v.includes('b') && !v.includes('dev') && !v.includes('rc')
 }
 
-function getLatestVersion(modelId, compatibility, prereleases) {
+function getLatestVersion(
+    modelId: string,
+    compatibility: ModelCompatibility,
+    prereleases?: boolean | null
+) {
     for (let [version, models] of Object.entries(compatibility)) {
         if (isStableVersion(version) && models[modelId]) {
             const modelVersions = models[modelId]
@@ -112,7 +150,7 @@ function getLatestVersion(modelId, compatibility, prereleases) {
     }
 }
 
-function formatVectors(data) {
+function formatVectors(data?: ModelVectorsMeta) {
     if (!data) return 'n/a'
     if (Object.values(data).every((n) => n === 0)) return 'context vectors only'
     const { keys, vectors, width } = data
@@ -123,11 +161,11 @@ function formatVectors(data) {
     }
 }
 
-function formatAccuracy(data, lang) {
+function formatAccuracy(data: ModelPerformance | undefined, lang: string) {
     const exclude = lang !== 'ja' ? ['speed'] : ['speed', 'morph_acc']
     if (!data) return []
     return Object.keys(data)
-        .map((label) => {
+        .map((label): FormattedModelAccuracy | null => {
             const value = data[label]
             return isNaN(value) || exclude.includes(label)
                 ? null
@@ -137,10 +175,10 @@ function formatAccuracy(data, lang) {
                       help: MODEL_META[label],
                   }
         })
-        .filter((item) => item)
+        .filter((item): item is FormattedModelAccuracy => item !== null)
 }
 
-function formatDownloadLink(lang, name, version) {
+function formatDownloadLink(lang: string, name: string, version: string) {
     const fullName = `${lang}_${name}-${version}`
     const filename = `${fullName}-py3-none-any.whl`
     const url = `https://github.com/explosion/spacy-models/releases/download/${fullName}/${filename}`
@@ -151,7 +189,7 @@ function formatDownloadLink(lang, name, version) {
     )
 }
 
-function formatModelMeta(data) {
+function formatModelMeta(data: RawModelMeta): FormattedModelMeta {
     return {
         fullName: `${data.lang}_${data.name}-${data.version}`,
         version: data.version,
@@ -164,15 +202,17 @@ function formatModelMeta(data) {
         author: data.author,
         url: data.url,
         license: data.license,
-        labels: isEmptyObj(data.labels) ? null : data.labels,
+        // Fetched pipeline meta always carries `labels`; `isEmptyObj` would
+        // throw on undefined, exactly like the untyped original.
+        labels: isEmptyObj(data.labels as object) ? null : (data.labels ?? null),
         vectors: formatVectors(data.vectors),
         accuracy: formatAccuracy(data.performance, data.lang),
         download_link: formatDownloadLink(data.lang, data.name, data.version),
     }
 }
 
-function formatSources(data = []) {
-    const sources = data.map((s) => (isString(s) ? { name: s } : s))
+function formatSources(data: RawModelMeta['sources'] = []) {
+    const sources: ModelSource[] = data.map((s) => (isString(s) ? { name: s } : s))
     return sources.map(({ name, url, author }, i) => (
         <Fragment key={i}>
             {i > 0 && <br />}
@@ -182,7 +222,7 @@ function formatSources(data = []) {
     ))
 }
 
-function linkComponents(components = []) {
+function linkComponents(components: string[] = []) {
     return join(
         components.map((c) => (
             <Fragment key={c}>
@@ -194,7 +234,7 @@ function linkComponents(components = []) {
     )
 }
 
-const Help = ({ children }) => (
+const Help = ({ children }: { children?: ReactNode }) => (
     <span data-tooltip={children}>
         <Icon name="help2" width={16} variant="subtle" inline />
     </span>
@@ -210,10 +250,10 @@ const Model = ({
     hasExamples,
     licenses,
     prereleases,
-}) => {
+}: ModelEntryProps) => {
     const [initialized, setInitialized] = useState(false)
     const [isError, setIsError] = useState(true)
-    const [meta, setMeta] = useState({})
+    const [meta, setMeta] = useState<Partial<FormattedModelMeta>>({})
     const { type, genre, size } = getModelComponents(name)
     const display_type =
         type === 'core' && (size === 'sm' || size === 'trf') ? 'core_no_vectors' : type
@@ -245,12 +285,12 @@ const Model = ({
     const components = linkComponents(meta.components)
     const sources = formatSources(meta.sources)
     const author = !meta.url ? meta.author : <Link to={meta.url}>{meta.author}</Link>
-    const licenseUrl = licenses[meta.license] ? licenses[meta.license].url : null
+    const licenseUrl = meta.license && licenses[meta.license] ? licenses[meta.license].url : null
     const license = licenseUrl ? <Link to={licenseUrl}>{meta.license}</Link> : meta.license
     const hasInteractiveCode = size === 'sm' && hasExamples && !isError
     const labels = meta.labels
 
-    const rows = [
+    const rows: { label: string; tag?: string; help?: string; content?: ReactNode }[] = [
         { label: 'Language', tag: langId, content: langName },
         { label: 'Type', tag: type, content: MODEL_META[display_type] },
         { label: 'Genre', tag: genre, content: MODEL_META[genre] },
@@ -396,9 +436,9 @@ const Model = ({
     )
 }
 
-const Models = ({ pageContext, repo, children }) => {
+const Models = ({ pageContext, repo, children }: ModelsTemplateProps) => {
     const [initialized, setInitialized] = useState(false)
-    const [compatibility, setCompatibility] = useState({})
+    const [compatibility, setCompatibility] = useState<ModelCompatibility>({})
     const { id, title, meta } = pageContext
     const { models } = meta
     const baseUrl = `https://raw.githubusercontent.com/${repo}/master`
@@ -417,7 +457,9 @@ const Models = ({ pageContext, repo, children }) => {
     return (
         <>
             <Title title={title} teaser={`Available trained pipelines for ${title}`} />
-            {models.map((modelName) => (
+            {/* Models pages are only generated for languages with pipelines,
+                so `meta.models` is never null here (see getStaticPaths). */}
+            {models!.map((modelName) => (
                 <Model
                     key={modelName}
                     name={modelName}
@@ -428,7 +470,7 @@ const Models = ({ pageContext, repo, children }) => {
                     repo={repo}
                     licenses={arrayToObj(languages.licenses, 'id')}
                     hasExamples={meta.hasExamples}
-                    prereleases={siteMetadata.nightly}
+                    prereleases={(siteMetadata as { nightly?: boolean }).nightly}
                 />
             ))}
             {children}

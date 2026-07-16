@@ -50,6 +50,11 @@ export interface DocsPageContext {
     apiDetails?: ApiDetails
     searchExclude?: boolean
     /**
+     * Present on models pages only (`pages/models/[slug].tsx`), which route
+     * through `templates/docs.js` into `templates/models.js`.
+     */
+    meta?: ModelsPageMeta
+    /**
      * Present when a page overrides its section's default sidebar with
      * labelled groups from its frontmatter (see `docs/styleguide.mdx`);
      * `templates/docs.js` wraps it as `{ items: pageContext.sidebar }`.
@@ -59,10 +64,13 @@ export interface DocsPageContext {
 
 /**
  * The `pageContext` passed to `templates/models.js` `Models`. Despite sharing a
- * name with `DocsPageContext`, this template only reads `{ id, title, meta }`.
+ * name with `DocsPageContext`, this template only reads `{ id, title, meta }`;
+ * `slug` is always present too (see `pages/models/[slug].tsx`) and keeps this
+ * type overlapping with `DocsPageContext` at the `templates/docs.js` seam.
  */
 export interface ModelsPageContext {
     id: string
+    slug: string
     title: string
     meta: ModelsPageMeta
 }

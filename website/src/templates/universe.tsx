@@ -1,36 +1,82 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+import React, { type ComponentType } from 'react'
 
-import Card from '../components/card'
+import CardUntyped from '../components/card'
 import Link from '../components/link'
-import Title from '../components/title'
+import TitleUntyped from '../components/title'
 import Grid from '../components/grid'
 import Button from '../components/button'
 import Icon from '../components/icon'
 import Tag from '../components/tag'
 import { InlineCode } from '../components/inlineCode'
-import CodeBlock from '../components/codeBlock'
-import Aside from '../components/aside'
-import Sidebar from '../components/sidebar'
-import Section, { Hr } from '../components/section'
-import Main from '../components/main'
-import Footer from '../components/footer'
+import CodeBlockUntyped from '../components/codeBlock'
+import AsideUntyped from '../components/aside'
+import SidebarUntyped from '../components/sidebar'
+import SectionUntyped, { Hr } from '../components/section'
+import MainUntyped from '../components/main'
+import FooterUntyped from '../components/footer'
 import { H3, H5, Label, InlineList } from '../components/typography'
-import { YouTube, SoundCloud, Iframe } from '../components/embed'
+import {
+    YouTube as YouTubeUntyped,
+    SoundCloud as SoundCloudUntyped,
+    Iframe as IframeUntyped,
+} from '../components/embed'
 import { github } from '../components/util'
-import MarkdownToReact from '../components/markdownToReactDynamic'
+import MarkdownToReactUntyped from '../components/markdownToReactDynamic'
+import type {
+    AsideProps,
+    MarkdownToReactProps,
+    CardProps,
+    CodeProps,
+    FooterProps,
+    IframeProps,
+    ImageGitHubProps,
+    MainProps,
+    SectionProps,
+    SidebarProps,
+    SoundCloudProps,
+    SpaCyVersionProps,
+    TitleProps,
+    UniverseContentProps,
+    UniversePageContext,
+    UniverseProjectProps,
+    UniverseResource,
+    UniverseTemplateProps,
+    YouTubeProps,
+} from '../types'
 
 import { nightly, legacy } from '../../meta/dynamicMeta.mjs'
 import universe from '../../meta/universe.json'
 import Image from 'next/image'
 
-function filterResources(resources, data) {
+// These components are not converted yet; their inferred props mark every
+// prop required, so type them via the curated props at this boundary.
+const Card = CardUntyped as ComponentType<CardProps>
+const Title = TitleUntyped as ComponentType<TitleProps>
+const CodeBlock = CodeBlockUntyped as ComponentType<CodeProps>
+const Aside = AsideUntyped as ComponentType<AsideProps>
+const Sidebar = SidebarUntyped as ComponentType<SidebarProps>
+const Section = SectionUntyped as ComponentType<SectionProps>
+const Main = MainUntyped as ComponentType<MainProps>
+const Footer = FooterUntyped as ComponentType<FooterProps>
+const YouTube = YouTubeUntyped as ComponentType<YouTubeProps>
+const SoundCloud = SoundCloudUntyped as ComponentType<SoundCloudProps>
+const Iframe = IframeUntyped as ComponentType<IframeProps>
+// (double cast: the dynamic JS wrapper infers nonsensical `props: string`)
+const MarkdownToReact = MarkdownToReactUntyped as unknown as ComponentType<MarkdownToReactProps>
+
+function filterResources(resources: UniverseResource[], data: UniversePageContext['data']) {
     const sorted = resources.sort((a, b) => a.id.localeCompare(b.id))
     if (!data || !data.isCategory) return sorted
-    return sorted.filter((res) => (res.category || []).includes(data.id))
+    return sorted.filter((res) => (res.category || []).includes(data.id!))
 }
 
-const UniverseContent = ({ content = [], categories, theme, pageContext, mdxComponents }) => {
+const UniverseContent = ({
+    content = [],
+    categories,
+    theme,
+    pageContext,
+    mdxComponents,
+}: UniverseContentProps) => {
     const { data = {} } = pageContext
     const filteredResources = filterResources(content, data)
     const activeData = data ? content.find(({ id }) => id === data.id) : null
@@ -85,7 +131,7 @@ const UniverseContent = ({ content = [], categories, theme, pageContext, mdxComp
                                     const header = youtube && (
                                         <Image
                                             src={`https://img.youtube.com/vi/${youtube}/0.jpg`}
-                                            alt={title}
+                                            alt={title!}
                                             width="480"
                                             height="360"
                                             style={{
@@ -170,26 +216,7 @@ const UniverseContent = ({ content = [], categories, theme, pageContext, mdxComp
     )
 }
 
-UniverseContent.propTypes = {
-    content: PropTypes.arrayOf(PropTypes.object),
-    categories: PropTypes.arrayOf(
-        PropTypes.shape({
-            label: PropTypes.string.isRequired,
-            items: PropTypes.arrayOf(
-                PropTypes.shape({
-                    id: PropTypes.string.isRequired,
-                    title: PropTypes.string.isRequired,
-                    description: PropTypes.string.isRequired,
-                })
-            ).isRequired,
-        })
-    ).isRequired,
-    theme: PropTypes.string,
-    location: PropTypes.object.isRequired,
-    mdxComponents: PropTypes.object,
-}
-
-const SpaCyVersion = ({ version }) => {
+const SpaCyVersion = ({ version }: SpaCyVersionProps) => {
     const versions = !Array.isArray(version) ? [version] : version
     return versions.map((v, i) => (
         <>
@@ -198,7 +225,7 @@ const SpaCyVersion = ({ version }) => {
     ))
 }
 
-const ImageGitHub = ({ url, isRounded, title }) => (
+const ImageGitHub = ({ url, isRounded, title }: ImageGitHubProps) => (
     // eslint-disable-next-line @next/next/no-img-element
     <img
         style={{
@@ -211,7 +238,7 @@ const ImageGitHub = ({ url, isRounded, title }) => (
     />
 )
 
-const Project = ({ data, components }) => (
+const Project = ({ data, components }: UniverseProjectProps) => (
     <>
         <Title title={data.title || data.id} teaser={data.slogan} image={data.thumb}>
             {(data.github || data.spacy_version) && (
@@ -260,11 +287,11 @@ const Project = ({ data, components }) => (
 
         <Section>
             {data.youtube && <YouTube id={data.youtube} />}
-            {data.soundcloud && <SoundCloud id={data.soundcloud} title={data.title} />}
+            {data.soundcloud && <SoundCloud id={data.soundcloud} title={data.title!} />}
             {data.iframe && (
                 <Iframe
                     src={data.iframe}
-                    title={data.title}
+                    title={data.title!}
                     width="100%"
                     height={data.iframe_height}
                 />
@@ -352,7 +379,7 @@ const Project = ({ data, components }) => (
     </>
 )
 
-const Universe = ({ pageContext, location, mdxComponents }) => {
+const Universe = ({ pageContext, location, mdxComponents }: UniverseTemplateProps) => {
     const theme = nightly ? 'nightly' : legacy ? 'legacy' : pageContext.theme
     return (
         <UniverseContent

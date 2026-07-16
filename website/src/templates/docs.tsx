@@ -1,23 +1,40 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+import React, { type ComponentType } from 'react'
 
 import Models from './models'
 
-import ReadNext from '../components/readnext'
+import ReadNextUntyped from '../components/readnext'
 import Button from '../components/button'
 import Grid from '../components/grid'
-import Title from '../components/title'
-import Footer from '../components/footer'
-import Sidebar from '../components/sidebar'
-import Main from '../components/main'
+import TitleUntyped from '../components/title'
+import FooterUntyped from '../components/footer'
+import SidebarUntyped from '../components/sidebar'
+import MainUntyped from '../components/main'
 import { getCurrentSource, github } from '../components/util'
+import type {
+    DocsProps,
+    FooterProps,
+    MainProps,
+    ModelsPageContext,
+    ReadNextProps,
+    SidebarProps,
+    SidebarsData,
+    TitleProps,
+} from '../types'
 
 import siteMetadata from '../../meta/site.json'
 import sidebars from '../../meta/sidebars.json'
 import { nightly, legacy } from '../../meta/dynamicMeta.mjs'
 import { languagesSorted } from '../../meta/languageSorted'
 
-const Docs = ({ pageContext, children }) => {
+// These components are not converted yet; their inferred props mark every
+// prop required, so type them via the curated props at this boundary.
+const ReadNext = ReadNextUntyped as ComponentType<ReadNextProps>
+const Title = TitleUntyped as ComponentType<TitleProps>
+const Footer = FooterUntyped as ComponentType<FooterProps>
+const Sidebar = SidebarUntyped as ComponentType<SidebarProps>
+const Main = MainUntyped as ComponentType<MainProps>
+
+const Docs = ({ pageContext, children }: DocsProps) => {
     const {
         id,
         slug,
@@ -37,15 +54,17 @@ const Docs = ({ pageContext, children }) => {
     const isModels = section === 'models'
     const sidebar = pageContext.sidebar
         ? { items: pageContext.sidebar }
-        : sidebars.find((bar) => bar.section === section)
+        : (sidebars as SidebarsData).find((bar) => bar.section === section)
     let pageMenu = menu ? menu.map(([text, id]) => ({ text, id })) : []
 
     if (isModels) {
-        sidebar.items[1].items = languagesSorted.map((lang) => ({
+        // The models sidebar entry always exists in meta/sidebars.json, and
+        // every language listed by languagesSorted has trained pipelines.
+        sidebar!.items[1].items = languagesSorted.map((lang) => ({
             text: lang.name,
             url: `/models/${lang.code}`,
             isActive: id === lang.code,
-            menu: lang.models.map((model) => ({
+            menu: lang.models!.map((model) => ({
                 text: model,
                 id: model,
             })),
@@ -72,14 +91,14 @@ const Docs = ({ pageContext, children }) => {
             {sidebar && <Sidebar items={sidebar.items} pageMenu={pageMenu} slug={slug} />}
             <Main
                 section={section}
-                theme={nightly ? 'nightly' : legacy ? 'legacy' : theme ?? 'blue'}
+                theme={nightly ? 'nightly' : legacy ? 'legacy' : (theme ?? 'blue')}
                 sidebar
                 asides
                 wrapContent
                 footer={<Footer />}
             >
                 {isModels && !isIndex ? (
-                    <Models pageContext={pageContext} repo={modelsRepo}>
+                    <Models pageContext={pageContext as ModelsPageContext} repo={modelsRepo}>
                         {subFooter}
                     </Models>
                 ) : (
@@ -100,24 +119,6 @@ const Docs = ({ pageContext, children }) => {
             </Main>
         </>
     )
-}
-
-Docs.propTypes = {
-    pageContext: PropTypes.shape({
-        slug: PropTypes.string.isRequired,
-        title: PropTypes.string.isRequired,
-        section: PropTypes.string,
-        teaser: PropTypes.string,
-        source: PropTypes.string,
-        tag: PropTypes.string,
-        isIndex: PropTypes.bool,
-        next: PropTypes.shape({
-            title: PropTypes.string.isRequired,
-            slug: PropTypes.string.isRequired,
-        }),
-        menu: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)),
-        theme: PropTypes.string,
-    }),
 }
 
 export default Docs

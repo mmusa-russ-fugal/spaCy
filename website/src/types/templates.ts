@@ -10,7 +10,12 @@ import type {
     UniverseCategory,
     UniverseResource,
 } from './site-data'
-import type { DocsPageContext, ModelsPageContext, UniversePageContext } from './page-context'
+import type {
+    DocsPageContext,
+    ModelsPageContext,
+    ModelsPageMeta,
+    UniversePageContext,
+} from './page-context'
 
 export interface DocsProps {
     pageContext: DocsPageContext
@@ -32,7 +37,8 @@ export interface ModelEntryProps {
     baseUrl: string
     repo: string
     compatibility: ModelCompatibility
-    hasExamples?: boolean
+    /** Models pages pass `has_examples || null` (see `pages/models/[slug].tsx`). */
+    hasExamples?: boolean | null
     licenses: Record<string, LicenseInfo>
     prereleases?: boolean
 }
@@ -97,16 +103,21 @@ export interface ImageGitHubProps {
     title?: string
 }
 
-/** Props for `templates/index.js` `Layout`, spread from a page's pageContext. */
-export interface LayoutProps {
+/**
+ * Props for `templates/index.js` `Layout`. Pages spread their page context
+ * straight into `<Layout>` (see `pages/[...listPathPage].tsx` and the
+ * `export default Layout` universe pages), so this is a partial view of
+ * `DocsPageContext` plus the models/universe extras and the gatsby-era
+ * `scope`/`location` passthroughs. `section` may arrive as an explicit `null`
+ * from `getStaticProps` (like `sectionTitle`/`teaser`/`theme` already do).
+ */
+export interface LayoutProps extends Partial<Omit<DocsPageContext, 'section'>> {
+    section?: string | null
     scope?: Record<string, unknown>
-    pageContext?: DocsPageContext
     location?: unknown
+    /** Models pages: pipeline metadata consumed by `templates/models.js`. */
+    meta?: ModelsPageMeta
+    /** Universe pages: the active category/project entry. */
+    data?: UniversePageContext['data']
     children?: ReactNode
-    title?: string
-    section?: string
-    sectionTitle?: string
-    teaser?: string
-    theme?: string
-    searchExclude?: boolean
 }
