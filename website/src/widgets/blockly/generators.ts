@@ -49,10 +49,17 @@ function sourceVar(source: string): string {
 }
 
 function formatPipeNames(state: BuilderState): string {
-    return `[${state.pipeline
+    const names = state.pipeline
         .filter((c) => !c.disabled)
         .map((c) => `'${c.name}'`)
-        .join(', ')}]`
+        .join(', ')
+    // A trained-model base contributes pipes we can't enumerate here, unless
+    // the listed components ARE the base pipeline (tour mode's fromBase
+    // seeding) — fall back to a placeholder so the comment stays honest.
+    if (state.base && !state.pipeline.some((c) => c.fromBase)) {
+        return names ? `[<${state.base} pipes> + ${names}]` : `[<${state.base} pipes>]`
+    }
+    return `[${names}]`
 }
 
 function hasConfig(component: PipelineComponentState): boolean {
@@ -85,10 +92,14 @@ export function generatePython(state: BuilderState): string {
         if (component.fromBase) continue
         const args: string[] = []
         if (component.source) {
-            // With source= set, the first argument is the component's name
-            // in the source pipeline, not its factory (config= is ignored
-            // for sourced components).
-            args.push(quote(component.name), `source=source_${sourceVar(component.source)}`)
+            // With source= set, the first argument is the pipe's name in
+            // the source pipeline — its factory name — and name= renames it
+            // in the receiving pipeline (config= is ignored for sourced
+            // components).
+            args.push(quote(component.factory), `source=source_${sourceVar(component.source)}`)
+            if (component.name !== component.factory) {
+                args.push(`name=${quote(component.name)}`)
+            }
         } else {
             args.push(quote(component.factory))
             if (component.name !== component.factory) {
@@ -121,6 +132,16 @@ export function generatePython(state: BuilderState): string {
 }
 
 /**
+ * Name a component is referred to by in config.cfg. For sourced components
+ * the section name must match the pipe's name in the source pipeline — its
+ * factory name — because a local rename is not expressible in config.cfg
+ * (validate.ts warns when one is dropped this way).
+ */
+function cfgComponentName(component: PipelineComponentState): string {
+    return component.source ? component.factory : component.name
+}
+
+/**
  * config.cfg excerpt for the 'config' mode: [nlp] block with the pipeline
  * order, one [components.*] block per component (factory = trained from
  * scratch, source = copied from a trained pipeline) with any non-default
@@ -129,12 +150,12 @@ export function generatePython(state: BuilderState): string {
  */
 export function generateConfig(state: BuilderState): string {
     const lines = ['[nlp]', `lang = ${quote(state.lang)}`]
-    lines.push(`pipeline = [${state.pipeline.map((c) => quote(c.name)).join(',')}]`)
+    lines.push(`pipeline = [${state.pipeline.map((c) => quote(cfgComponentName(c))).join(',')}]`)
     lines.push('')
     lines.push('[components]')
     for (const component of state.pipeline) {
         lines.push('')
-        lines.push(`[components.${component.name}]`)
+        lines.push(`[components.${cfgComponentName(component)}]`)
         if (component.source) {
             lines.push(`source = ${quote(component.source)}`)
         } else {
@@ -159,7 +180,9 @@ export function generateConfig(state: BuilderState): string {
     if (frozen.length) {
         lines.push('')
         lines.push('[training]')
-        lines.push(`frozen_components = [${frozen.map((c) => quote(c.name)).join(',')}]`)
+        lines.push(
+            `frozen_components = [${frozen.map((c) => quote(cfgComponentName(c))).join(',')}]`
+        )
     }
     return lines.join('\n')
 }

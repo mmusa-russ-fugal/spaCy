@@ -70,6 +70,14 @@ export function validateState(
             })
         }
 
+        if (preset.mode === 'config' && comp.source && comp.name !== comp.factory) {
+            warnings.push({
+                blockId: comp.blockId,
+                level: 'warning',
+                message: `Renaming a sourced component isn't expressible in config.cfg — "${comp.factory}" (its name in ${comp.source}) is used instead of "${comp.name}".`,
+            })
+        }
+
         if (!baseIsModel && !comp.source) {
             for (const req of meta.requires) {
                 if (!provided.has(req)) {

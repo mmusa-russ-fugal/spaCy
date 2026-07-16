@@ -21,6 +21,9 @@ import type { BuilderPreset } from './presets'
 export interface PipelineComponentState {
     /** Component name in the pipeline (defaults to the factory name). */
     name: string
+    /** Whether the block's name field was explicitly filled in (composer's
+     * explicitName): explicit duplicates warn before being uniquified. */
+    explicitName?: boolean
     /** Registered factory name. */
     factory: string
     /** Sourced from this trained pipeline instead of the factory, if set. */
@@ -198,6 +201,7 @@ function componentFromBlock(
     return {
         factory,
         name: nameIsValid && rawName ? rawName : factory,
+        explicitName: nameIsValid && Boolean(rawName),
         source,
         disabled,
         fromBase: false,
@@ -213,7 +217,7 @@ function uniquifyNames(components: PipelineComponentState[], issues: SpecIssue[]
         const count = seen.get(comp.name) ?? 0
         seen.set(comp.name, count + 1)
         if (count > 0) {
-            if (comp.name !== comp.factory) {
+            if (comp.explicitName) {
                 issues.push({
                     blockId: comp.blockId,
                     message: `Duplicate component name "${comp.name}" — names must be unique.`,
