@@ -30,3 +30,29 @@ export const composerTheme = Blockly.Theme.defineTheme("spacy_composer", {
     size: 10.5,
   },
 })
+
+/**
+ * Dark variant applied when the app is in dark mode (see BlocklyCanvas, which
+ * follows the `.dark` class on <html> set by the theme toggle). Inherits the
+ * block/category/font styling from `composerTheme` and only recolours the
+ * workspace chrome (background, toolbox, flyout, scrollbars) so the block
+ * palette stays identical in both modes.
+ */
+export const composerDarkTheme = Blockly.Theme.defineTheme("spacy_composer_dark", {
+  name: "spacy_composer_dark",
+  base: composerTheme,
+  componentStyles: {
+    workspaceBackgroundColour: "#18181b", // zinc-900
+    toolboxBackgroundColour: "#27272a", // zinc-800
+    toolboxForegroundColour: "#e4e4e7", // zinc-200
+    flyoutBackgroundColour: "#27272a",
+    flyoutForegroundColour: "#a1a1aa", // zinc-400
+    flyoutOpacity: 1,
+    scrollbarColour: "#52525b", // zinc-600
+    scrollbarOpacity: 0.6,
+    insertionMarkerColour: "#fafafa",
+    insertionMarkerOpacity: 0.3,
+    cursorColour: "#fafafa",
+    selectedGlowColour: categoryColours.pipeline,
+  },
+})

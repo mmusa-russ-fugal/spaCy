@@ -3,7 +3,9 @@ import * as Blockly from "blockly"
 
 import { defineBlocks } from "@/blockly/blocks"
 import { toolbox } from "@/blockly/toolbox"
-import { composerTheme } from "@/blockly/theme"
+import { composerDarkTheme, composerTheme } from "@/blockly/theme"
+
+const isDarkMode = () => document.documentElement.classList.contains("dark")
 
 let blocksDefined = false
 
@@ -36,7 +38,7 @@ export function BlocklyCanvas({ onChange, onReady }: BlocklyCanvasProps) {
       toolbox,
       horizontalLayout: compact,
       toolboxPosition: "start",
-      theme: composerTheme,
+      theme: isDarkMode() ? composerDarkTheme : composerTheme,
       renderer: "zelos", // touch-friendly, rounded renderer
       media: import.meta.env.BASE_URL + "blockly-media/", // self-hosted, no CDN
       sounds: false,
@@ -69,8 +71,19 @@ export function BlocklyCanvas({ onChange, onReady }: BlocklyCanvasProps) {
     })
     resizeObserver.observe(hostRef.current)
 
+    // Follow the app's light/dark toggle: useTheme flips the `.dark` class on
+    // <html>, so recolour the canvas chrome whenever that class changes.
+    const themeObserver = new MutationObserver(() => {
+      workspace.setTheme(isDarkMode() ? composerDarkTheme : composerTheme)
+    })
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    })
+
     return () => {
       resizeObserver.disconnect()
+      themeObserver.disconnect()
       workspace.removeChangeListener(listener)
       workspace.dispose()
     }
