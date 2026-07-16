@@ -58,14 +58,7 @@ export type GridCols = 1 | 2 | 3 | 4
  * name that appears in the docs.
  */
 export type CodeLang =
-    | 'python'
-    | 'bash'
-    | 'json'
-    | 'yaml'
-    | 'markdown'
-    | 'r'
-    | 'cli'
-    | (string & {})
+    'python' | 'bash' | 'json' | 'yaml' | 'markdown' | 'r' | 'cli' | (string & {})
 
 /** Either a plain string or already-rendered React content. */
 export type StringOrNode = string | ReactNode

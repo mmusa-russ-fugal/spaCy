@@ -5,13 +5,7 @@ import type { ReactNode } from 'react'
 
 /** Named logos rendered by the integration widget. */
 export type IntegrationLogoName =
-    | 'dvc'
-    | 'prodigy'
-    | 'streamlit'
-    | 'fastapi'
-    | 'wandb'
-    | 'ray'
-    | 'huggingface_hub'
+    'dvc' | 'prodigy' | 'streamlit' | 'fastapi' | 'wandb' | 'ray' | 'huggingface_hub'
 
 export interface IntegrationLogoProps {
     name: IntegrationLogoName
