@@ -1,17 +1,21 @@
-import React from 'react'
-import PropTypes from 'prop-types'
 import classNames from 'classnames'
 import GitHubButton from 'react-github-btn'
 import SVG from 'react-inlinesvg'
 
 import Link from './link'
-import Icon from './icon'
 import Dropdown from './dropdown'
 import { github } from './util'
 import logoSpacy from '../images/logo.svg'
 import classes from '../styles/navigation.module.sass'
+import type { NavigationItem, NavigationProps } from '../types'
 
-const NavigationDropdown = ({ items = [], section }) => {
+const NavigationDropdown = ({
+    items = [],
+    section,
+}: {
+    items?: NavigationItem[]
+    section?: string
+}) => {
     const active = items.find(({ text }) => text.toLowerCase() === section)
     const defaultValue = active ? active.url : 'title'
     return (
@@ -28,7 +32,14 @@ const NavigationDropdown = ({ items = [], section }) => {
     )
 }
 
-export default function Navigation({ title, items = [], section, search, alert, children }) {
+export default function Navigation({
+    title,
+    items = [],
+    section,
+    search,
+    alert,
+    children,
+}: NavigationProps) {
     const logo = (
         <Link to="/" aria-label={title} noLinkLayout>
             <h1 className={classes.title}>{title}</h1>
@@ -77,16 +88,4 @@ export default function Navigation({ title, items = [], section, search, alert, 
             {children}
         </nav>
     )
-}
-
-Navigation.propTypes = {
-    title: PropTypes.string.isRequired,
-    items: PropTypes.arrayOf(
-        PropTypes.shape({
-            text: PropTypes.string.isRequired,
-            url: PropTypes.string.isRequired,
-        })
-    ),
-    section: PropTypes.string,
-    search: PropTypes.node,
 }

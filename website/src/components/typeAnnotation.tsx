@@ -1,26 +1,32 @@
-import React from 'react'
 import classNames from 'classnames'
 import CUSTOM_TYPES from '../../meta/type-annotations.json'
 import Link from './link'
 import classes from '../styles/code.module.sass'
+import type { TypeAnnotationProps } from '../types'
 
 export const WRAP_THRESHOLD = 30
 
 const specialCharacterList = ['[', ']', ',', ', ']
 
-const highlight = (element) =>
+const highlight = (element: string) =>
     specialCharacterList.includes(element) ? (
         <span className={classes['cli-arg-subtle']}>{element}</span>
     ) : (
         element
     )
 
-function linkType(el, showLink = true, key) {
+function linkType(el: string, showLink = true, key?: number) {
     if (!el.length) return el
     const elStr = el.trim()
     if (!elStr) return el
-    const typeUrl = CUSTOM_TYPES[elStr]
-    const url = typeUrl == true ? DEFAULT_TYPE_URL : typeUrl
+    const typeUrl = (CUSTOM_TYPES as Record<string, string | undefined>)[elStr]
+    // This previously read `typeUrl == true ? DEFAULT_TYPE_URL : typeUrl`,
+    // referencing an undeclared `DEFAULT_TYPE_URL`. The branch was dead for
+    // the actual data — none of type-annotations.json's string values is
+    // loosely equal to `true` (that would take e.g. '1'), so the ternary
+    // always short-circuited past the undeclared identifier — and is
+    // dropped here.
+    const url = typeUrl
     return url && showLink ? (
         <Link to={url} hideIcon key={key}>
             {elStr}
@@ -30,8 +36,10 @@ function linkType(el, showLink = true, key) {
     )
 }
 
-export const TypeAnnotation = ({ lang = 'python', link = true, children }) => {
-    const code = Array.isArray(children) ? children.join('') : children || ''
+export const TypeAnnotation = ({ lang = 'python', link = true, children }: TypeAnnotationProps) => {
+    const code = Array.isArray(children)
+        ? children.join('')
+        : (children as string | undefined) || ''
     const [rawText, meta] = code.split(/(?= \(.+\)$)/)
     const annotClassNames = classNames(
         'type-annotation',

@@ -1,17 +1,16 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { serialize } from 'next-mdx-remote/serialize'
 import { MDXRemote } from 'next-mdx-remote'
+import type { MDXRemoteSerializeResult } from 'next-mdx-remote'
 import { remarkPlugins, rehypePlugins } from '../../plugins/index.mjs'
 
 /**
  * Convert raw Markdown to React
- * @param {String} markdown - The Markdown markup to convert.
- * @param {Object} [remarkReactComponents] - Optional React components to use
- *  for HTML elements.
- * @returns {Node} - The converted React elements.
+ * @param props.markdown - The Markdown markup to convert.
+ * @returns The converted React elements.
  */
-export default function MarkdownToReact({ markdown }) {
-    const [mdx, setMdx] = useState(null)
+export default function MarkdownToReact({ markdown }: { markdown: string }) {
+    const [mdx, setMdx] = useState<MDXRemoteSerializeResult | null>(null)
 
     useEffect(() => {
         const getMdx = async () => {

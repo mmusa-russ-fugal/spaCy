@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react'
-import PropTypes from 'prop-types'
+import { useEffect } from 'react'
 import classNames from 'classnames'
 import { useInView } from 'react-intersection-observer'
 
 import classes from '../styles/section.module.sass'
+import type { SectionProps } from '../types'
 
-export default function Section({ id, className, ...props }) {
+export default function Section({ id, className, ...props }: SectionProps) {
     const sectionClassNames = classNames(classes.root, className)
     const relId = id && id.startsWith('section-') ? id.slice(8) : id
     const [ref, inView] = useInView({ threshold: 0 })
@@ -16,11 +16,6 @@ export default function Section({ id, className, ...props }) {
         }
     }, [inView, relId])
     return <section ref={ref} id={id} className={sectionClassNames} {...props} />
-}
-
-Section.propTypes = {
-    id: PropTypes.string,
-    className: PropTypes.string,
 }
 
 export const Hr = () => <hr className={classes.hr} />
