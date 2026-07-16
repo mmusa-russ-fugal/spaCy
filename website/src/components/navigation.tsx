@@ -14,7 +14,7 @@ const NavigationDropdown = ({
     section,
 }: {
     items?: NavigationItem[]
-    section?: string
+    section?: string | null
 }) => {
     const active = items.find(({ text }) => text.toLowerCase() === section)
     const defaultValue = active ? active.url : 'title'
