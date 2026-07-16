@@ -21,9 +21,11 @@ function linkType(el: string, showLink = true, key?: number) {
     if (!elStr) return el
     const typeUrl = (CUSTOM_TYPES as Record<string, string | undefined>)[elStr]
     // This previously read `typeUrl == true ? DEFAULT_TYPE_URL : typeUrl`,
-    // referencing an undeclared `DEFAULT_TYPE_URL`. The branch was provably
-    // dead — type-annotations.json only holds string values, and a non-empty
-    // string is never loosely equal to `true` — so it is dropped here.
+    // referencing an undeclared `DEFAULT_TYPE_URL`. The branch was dead for
+    // the actual data — none of type-annotations.json's string values is
+    // loosely equal to `true` (that would take e.g. '1'), so the ternary
+    // always short-circuited past the undeclared identifier — and is
+    // dropped here.
     const url = typeUrl
     return url && showLink ? (
         <Link to={url} hideIcon key={key}>
