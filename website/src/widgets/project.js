@@ -8,6 +8,7 @@ import { projectsRepo } from '../components/util'
 
 const COMMAND = 'python -m spacy project clone'
 
+/** @param {import('../types').ProjectWidgetProps} props */
 export default function Project({
     title = 'Get started with a project template',
     id,

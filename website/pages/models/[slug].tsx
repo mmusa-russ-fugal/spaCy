@@ -5,10 +5,11 @@ import recordLanguages from '../../meta/recordLanguages'
 import Layout from '../../src/templates'
 import { PropsPageBase } from '../[...listPathPage]'
 import { languagesSorted } from '../../meta/languageSorted'
+import type { ModelsPageMeta, NextPageRef } from '../../src/types'
 
 type PropsPageModel = PropsPageBase & {
-    next: { title: string; slug: string } | null
-    meta: { models?: ReadonlyArray<string>; example?: string; hasExamples?: boolean }
+    next: NextPageRef | null
+    meta: ModelsPageMeta
 }
 
 const PostPageModel = (props: PropsPageModel) => {

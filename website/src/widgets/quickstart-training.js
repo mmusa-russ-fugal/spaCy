@@ -74,6 +74,7 @@ const HtmlToReactDynamic = dynamic(() => import('../components/htmlToReact'), {
     loading: () => <></>,
 })
 
+/** @param {import('../types').QuickstartTrainingWidgetProps} props */
 export default function QuickstartTraining({ id, title, download = 'base_config.cfg' }) {
     const [lang, setLang] = useState(DEFAULT_LANG)
     const [_components, _setComponents] = useState([])
