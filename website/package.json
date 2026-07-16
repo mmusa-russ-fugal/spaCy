@@ -53,6 +53,7 @@
     "remark-gfm": "^4.0.1",
     "remark-smartypants": "^3.0.2",
     "sass": "^1.101.0",
+    "serwist": "^9.5.11",
     "typescript": "^5.9.3",
     "unist-util-visit": "^5.1.0",
     "ws": "^8.11.0"
@@ -63,8 +64,5 @@
   "overrides": {
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3"
-  },
-  "devDependencies": {
-    "serwist": "^9.5.11"
   }
 }

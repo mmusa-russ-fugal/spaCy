@@ -679,7 +679,7 @@ switch is untouched).
 
 Branch: `migration/phase-5-pwa-serwist`
 
-The site is a PWA again: `@serwist/next` 9.5.11 (+ `serwist` 9.5.11, dev)
+The site is a PWA again: `@serwist/next` 9.5.11 (+ `serwist` 9.5.11)
 compiles `src/sw.ts` into `public/sw.js` at build time, precaching all
 `_next/static` assets and `public/` files and runtime-caching pages for
 offline use. The generated worker ships at the **same URL** (`/sw.js`) as
@@ -688,10 +688,14 @@ visitors' browsers re-fetch `/sw.js` on navigation, so the kill-switch
 worker (or the old next-pwa worker, for visitors who never returned since
 Phase 1) is superseded by the Serwist worker in one deploy. Scope is
 offline/runtime caching + installability only; **no web push/VAPID** — a
-static export has no server to hold subscriptions.
+static export has no server to hold subscriptions. Offline caveat: only
+pages visited while the worker controls the client are available offline
+— there is no offline fallback page, and the very first page of a first
+visit loads before the worker takes control, so it is not cached until a
+later controlled visit.
 
-Landed versions: `@serwist/next` ^9 (9.5.11), `serwist` ^9 (9.5.11, dev
-dependency). Requires webpack builds — satisfied by Phase 4's `--webpack`
+Landed versions: `@serwist/next` ^9 (9.5.11), `serwist` ^9 (9.5.11).
+Requires webpack builds — satisfied by Phase 4's `--webpack`
 scripts; this dependency is why webpack-first was locked there.
 
 ### What changed
@@ -704,13 +708,18 @@ by the wrapper. To swap in a different PWA implementation, replace those
 two files and keep serving *some* worker at `/sw.js`.
 
 - `src/sw.ts` — worker source: `new Serwist({ precacheEntries:
-  self.__SW_MANIFEST, skipWaiting: true, clientsClaim: true,
-  runtimeCaching: defaultCache }).addEventListeners()`. `defaultCache`
-  (from `@serwist/next/worker`) gives NetworkFirst pages / cache-first
-  hashed assets.
+  self.__SW_MANIFEST, precacheOptions: { cleanupOutdatedCaches: true },
+  skipWaiting: true, clientsClaim: true, runtimeCaching: defaultCache
+  }).addEventListeners()`. `defaultCache` (from `@serwist/next/worker`)
+  gives NetworkFirst pages / cache-first hashed assets;
+  `cleanupOutdatedCaches` purges legacy `-precache-` caches from the
+  pre-Phase-1 next-pwa/workbox era for stragglers the kill switch never
+  reached.
 - `next.config.mjs` — config composed as `withSerwist(withMDX({...}))`
   with `swSrc: 'src/sw.ts'`, `swDest: 'public/sw.js'`, `disable` in
-  development (dev emits and registers nothing; `/sw.js` 404s).
+  development (dev emits and registers nothing; `/sw.js` 404s in a clean
+  checkout — a stale `public/sw.js` left by a prior production build is
+  served, but is inert since nothing registers it).
 - `tsconfig.json` — `webworker` lib, explicit `types` array (`node`,
   `react`, `react-dom`, `mdx` — the ambient types the codebase already
   relied on via auto-inclusion — plus `@serwist/next/typings`), exclude
@@ -746,8 +755,10 @@ two files and keep serving *some* worker at `/sw.js`.
 4. `npx tsc --noEmit`: 24 errors, list identical to the Phase 4 baseline
    (`src/sw.ts` typechecks clean). `npm run lint`: exact parity (same 3
    pre-existing findings; `src/sw.ts` clean).
-5. Dev check: `npm run dev` → `GET /sw.js` 404, no `serwist` string in
-   the served HTML, `public/sw.js` not (re)generated.
+5. Dev check: `npm run dev` → `GET /sw.js` 404 (in a clean checkout; a
+   stale `public/sw.js` from a prior production build is served instead,
+   inert because nothing registers it), no `serwist` string in the
+   served HTML, `public/sw.js` not (re)generated.
 
 ### Rollback
 
@@ -759,6 +770,7 @@ at `public/sw.js` (from git history: `git show
 `next.config.mjs` (or set `disable: true`), and redeploy: returning
 browsers re-fetch `/sw.js` (the netlify.toml no-cache header exists
 precisely to keep this path fast) and the kill switch unregisters and
-clears all caches, exactly as designed in Phase 1. The `git revert` of
-this phase's commits does all of that except *restoring* the kill switch
-— that file must come back in the same deploy.
+clears all caches, exactly as designed in Phase 1. A full `git revert`
+of this phase's commits does all of that, *including* restoring the kill
+switch: reverting the swap commit brings back `public/sw.js` (and drops
+its `.gitignore` entry), so the revert is by itself a complete rollback.

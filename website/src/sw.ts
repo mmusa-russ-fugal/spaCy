@@ -22,6 +22,12 @@ declare const self: ServiceWorkerGlobalScope & {
 
 const serwist = new Serwist({
     precacheEntries: self.__SW_MANIFEST,
+    // Purge legacy `-precache-` caches left by the pre-Phase-1 next-pwa/workbox
+    // era for stragglers the deleted kill-switch worker never reached. The
+    // cleanup predicate only deletes caches whose name contains `-precache-`
+    // plus this registration's scope and is not the current precache name, so
+    // Serwist's own cache is never touched.
+    precacheOptions: { cleanupOutdatedCaches: true },
     skipWaiting: true,
     clientsClaim: true,
     runtimeCaching: defaultCache,
