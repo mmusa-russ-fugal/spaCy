@@ -52,6 +52,18 @@ export interface QuickstartTrainingWidgetProps {
     download?: string
 }
 
+/**
+ * Preset ids for the Blockly pipeline builder — one per docs location the
+ * widget is embedded at (see `src/widgets/blockly/presets.ts`).
+ */
+export type BlocklyPresetId =
+    'spacy-101' | 'pipelines-overview' | 'training-config' | 'api-add-pipe'
+
+export interface BlocklyPipelineBuilderProps {
+    preset: BlocklyPresetId
+    title?: string
+}
+
 export interface QuickstartModelsWidgetProps {
     id?: string
     title?: string
