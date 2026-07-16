@@ -12,6 +12,7 @@ import type {
     MouseEventHandler,
     ReactNode,
 } from 'react'
+import type { ImageProps as NextImageProps } from 'next/image'
 import type {
     AlertVariant,
     ButtonVariant,
@@ -40,7 +41,8 @@ export interface LinkProps {
 }
 
 export interface OptionalLinkProps {
-    to?: string
+    /** `null` is tolerated: `code.js` passes `to={null}` for non-command CLI args. */
+    to?: string | null
     href?: string
     children: ReactNode
     [key: string]: unknown
@@ -257,9 +259,13 @@ export interface StandaloneProps {
     [key: string]: unknown
 }
 
-export interface ImageFillProps {
+/**
+ * Everything except `image` is forwarded to `next/image` (with `src` and
+ * `fill` supplied by the component), so the pass-through is typed as the
+ * remaining `next/image` props rather than an open index signature.
+ */
+export interface ImageFillProps extends Omit<NextImageProps, 'src' | 'fill'> {
     image: { src: string; width: number; height: number }
-    [key: string]: unknown
 }
 
 export interface GoogleSheetProps {
@@ -416,6 +422,11 @@ export interface GitHubCodeProps {
     className?: string
 }
 
+/** Props for the `Pre` wrapper exported from `codeBlock.js`. */
+export interface PreProps {
+    children?: ReactNode
+}
+
 /** Props for the `Code` component in `code.js` (also `codeBlock.js`/`codeDynamic.js`). */
 export interface CodeProps {
     lang?: CodeLang
@@ -438,7 +449,12 @@ export interface JuniperClassNames {
 }
 
 export interface JuniperProps {
-    children?: string
+    /**
+     * Used as the initial cell source. Declared as `PropTypes.string` in
+     * `juniper.js`, but `code.js` forwards its MDX children unchanged, so the
+     * real boundary type is `ReactNode`.
+     */
+    children?: ReactNode
     repo: string
     branch?: string
     url?: string

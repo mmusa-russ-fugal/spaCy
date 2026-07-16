@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react'
-import PropTypes from 'prop-types'
+import { useState, useEffect, useRef } from 'react'
 import classNames from 'classnames'
 
 import Link from './link'
 import Tag from './tag'
 import Dropdown from './dropdown'
 import classes from '../styles/sidebar.module.sass'
+import type { SidebarProps, SidebarSection } from '../types'
 
-function getActiveHeading(items, slug) {
-    if (/^\/?universe/.test(slug)) return 'Universe'
+function getActiveHeading(items: SidebarSection[], slug: string | undefined) {
+    // `String(slug)` matches the coercion `RegExp.test` always applied here
+    if (/^\/?universe/.test(String(slug))) return 'Universe'
     for (let section of items) {
         for (let { isActive, url } of section.items) {
             if (isActive || slug === url) {
@@ -19,7 +20,13 @@ function getActiveHeading(items, slug) {
     return 'Documentation'
 }
 
-const DropdownNavigation = ({ items, defaultValue }) => {
+const DropdownNavigation = ({
+    items,
+    defaultValue,
+}: {
+    items: SidebarSection[]
+    defaultValue?: string
+}) => {
     return (
         <div className={classes['dropdown']}>
             <Dropdown className={classes['dropdown-select']} defaultValue={defaultValue}>
@@ -36,13 +43,14 @@ const DropdownNavigation = ({ items, defaultValue }) => {
     )
 }
 
-export default function Sidebar({ items = [], pageMenu = [], slug }) {
-    const [activeSection, setActiveSection] = useState(null)
-    const activeRef = useRef()
+export default function Sidebar({ items = [], pageMenu = [], slug }: SidebarProps) {
+    const [activeSection, setActiveSection] = useState<string | null>(null)
+    const activeRef = useRef<HTMLLIElement>(null)
     const activeHeading = getActiveHeading(items, slug)
 
     useEffect(() => {
-        const handleInView = ({ detail }) => setActiveSection(detail)
+        const handleInView = (event: Event) =>
+            setActiveSection((event as CustomEvent<string>).detail)
         window.addEventListener('SPACY_SCROLL_HANDLER', handleInView, { passive: true })
         return () => {
             window.removeEventListener('SPACY_SCROLL_HANDLER', handleInView)
@@ -100,31 +108,4 @@ export default function Sidebar({ items = [], pageMenu = [], slug }) {
             ))}
         </menu>
     )
-}
-
-Sidebar.propTypes = {
-    items: PropTypes.arrayOf(
-        PropTypes.shape({
-            label: PropTypes.string.isRequired,
-            items: PropTypes.arrayOf(
-                PropTypes.shape({
-                    text: PropTypes.string.isRequired,
-                    url: PropTypes.string,
-                    onClick: PropTypes.func,
-                    menu: PropTypes.arrayOf(
-                        PropTypes.shape({
-                            text: PropTypes.string.isRequired,
-                            id: PropTypes.string.isRequired,
-                        })
-                    ),
-                })
-            ).isRequired,
-        })
-    ),
-    pageMenu: PropTypes.arrayOf(
-        PropTypes.shape({
-            text: PropTypes.string.isRequired,
-            id: PropTypes.string.isRequired,
-        })
-    ),
 }

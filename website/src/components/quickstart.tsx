@@ -1,5 +1,5 @@
-import React, { Fragment, useState, useEffect, useRef, Children } from 'react'
-import PropTypes from 'prop-types'
+import { Fragment, useState, useEffect, useRef, Children, isValidElement } from 'react'
+import type { ReactNode, RefObject } from 'react'
 import classNames from 'classnames'
 
 import Section from './section'
@@ -7,8 +7,9 @@ import Icon from './icon'
 import { H2 } from './typography'
 import { copyToClipboard } from './copy'
 import classes from '../styles/quickstart.module.sass'
+import type { QSProps, QuickstartProps } from '../types'
 
-function getNewChecked(optionId, checkedForId, multiple) {
+function getNewChecked(optionId: string, checkedForId: string[], multiple?: boolean) {
     if (!multiple) return [optionId]
     if (checkedForId.includes(optionId)) return checkedForId.filter((opt) => opt !== optionId)
     return [...checkedForId, optionId]
@@ -29,36 +30,42 @@ const Quickstart = ({
     codeLang,
     Container = Section,
     children,
-}) => {
-    const contentRef = useRef()
-    const copyAreaRef = useRef()
+}: QuickstartProps) => {
+    const contentRef = useRef<HTMLDivElement>(null)
+    const copyAreaRef = useRef<HTMLTextAreaElement>(null)
     const isClient = typeof window !== 'undefined'
     const supportsCopy = isClient && document.queryCommandSupported('copy')
     const showCopy = supportsCopy && copy
-    const [checked, setChecked] = useState({})
+    const [checked, setChecked] = useState<Record<string, string[]>>({})
     const [initialized, setInitialized] = useState(false)
     const [copySuccess, setCopySuccess] = useState(false)
-    const [otherState, setOtherState] = useState({})
-    const setOther = (id, value) => setOtherState({ ...otherState, [id]: value })
-    const getRawContent = (ref) => {
+    const [otherState, setOtherState] = useState<Record<string, boolean>>({})
+    const setOther = (id: string, value: boolean) => setOtherState({ ...otherState, [id]: value })
+    const getRawContent = (ref: RefObject<HTMLDivElement | null>) => {
         if (rawContent !== null) return rawContent
         if (ref.current && ref.current.childNodes) {
-            // Select all currently visible nodes (spans and text nodes)
-            const result = [...ref.current.childNodes].filter((el) => el.offsetParent !== null)
+            // Select all currently visible nodes (spans and text nodes; text
+            // nodes have no offsetParent, so the undefined !== null check
+            // deliberately keeps them)
+            const result = [...ref.current.childNodes].filter(
+                (el) => (el as HTMLElement).offsetParent !== null
+            )
             return result.map((el) => el.textContent).join('\n')
         }
         return ''
     }
 
     const onClickCopy = () => {
-        copyAreaRef.current.value = getRawContent(contentRef)
+        if (copyAreaRef.current) {
+            copyAreaRef.current.value = getRawContent(contentRef)
+        }
         copyToClipboard(copyAreaRef, setCopySuccess)
     }
 
     useEffect(() => {
         window.dispatchEvent(new Event('resize')) // scroll position for progress
         if (!initialized) {
-            const initialChecked = Object.assign(
+            const initialChecked: Record<string, string[]> = Object.assign(
                 {},
                 ...data.map(({ id, options = [] }) => ({
                     [id]: options.filter((option) => option.checked).map(({ id }) => id),
@@ -69,17 +76,16 @@ const Quickstart = ({
         }
     }, [data, initialized])
 
-    const isRelevant = (child) => {
-        if (typeof child === 'string' || child.type !== QS) {
+    const isRelevant = (child: ReactNode) => {
+        if (typeof child === 'string' || !isValidElement(child) || child.type !== QS) {
             return true
         }
+        const childProps = child.props as Record<string, string | undefined>
 
         return data.every((itemData) => {
-            return (
-                !child.props[itemData.id] ||
-                !checked[itemData.id] ||
-                checked[itemData.id].includes(child.props[itemData.id])
-            )
+            const value = childProps[itemData.id]
+            const checkedForId = checked[itemData.id]
+            return !value || !checkedForId || checkedForId.includes(value)
         })
     }
 
@@ -264,28 +270,7 @@ const Quickstart = ({
     )
 }
 
-Quickstart.propTypes = {
-    title: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
-    description: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
-    data: PropTypes.arrayOf(
-        PropTypes.shape({
-            id: PropTypes.string.isRequired,
-            title: PropTypes.string.isRequired,
-            multiple: PropTypes.bool,
-            options: PropTypes.arrayOf(
-                PropTypes.shape({
-                    id: PropTypes.string.isRequired,
-                    title: PropTypes.string.isRequired,
-                    checked: PropTypes.bool,
-                    help: PropTypes.string,
-                })
-            ),
-            help: PropTypes.string,
-        })
-    ),
-}
-
-const QS = ({ children, prompt = 'bash', divider = false, comment = false, ...props }) => {
+const QS = ({ children, prompt = 'bash', divider = false, comment = false, ...props }: QSProps) => {
     const qsClassNames = classNames({
         [classes['prompt']]: !!prompt && !divider,
         [classes['bash']]: prompt === 'bash' && !divider,

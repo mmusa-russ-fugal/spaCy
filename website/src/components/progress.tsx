@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 import classes from '../styles/progress.module.sass'
 
@@ -19,12 +19,16 @@ function getOffset() {
 function getScrollY() {
     // Called during render (initial state), which also runs server-side
     if (typeof window === 'undefined') return 0
-    const pos = (window.pageYOffset || document.scrollTop) - (document.clientTop || 0)
+    // `scrollTop`/`clientTop` don't exist on `document` (they are element
+    // properties) and evaluate to `undefined` at runtime; the cast keeps the
+    // long-standing expression (and its NaN fallback below) intact.
+    const doc = document as Document & { scrollTop: number; clientTop: number }
+    const pos = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0)
     return isNaN(pos) ? 0 : pos
 }
 
 export default function Progress() {
-    const progressRef = useRef()
+    const progressRef = useRef<HTMLProgressElement>(null)
     const [initialized, setInitialized] = useState(false)
     const [offset, setOffset] = useState(getOffset())
     const [scrollY, setScrollY] = useState(getScrollY())

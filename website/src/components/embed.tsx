@@ -1,5 +1,4 @@
-import React, { Fragment } from 'react'
-import PropTypes from 'prop-types'
+import { Fragment } from 'react'
 import classNames from 'classnames'
 import ImageNext from 'next/image'
 
@@ -9,8 +8,18 @@ import { InlineCode } from './inlineCode'
 import MarkdownToReact from './markdownToReactDynamic'
 
 import classes from '../styles/embed.module.sass'
+import type {
+    EmbedImageProps,
+    GoogleSheetProps,
+    IframeProps,
+    ImageFillProps,
+    ImageScrollableProps,
+    SoundCloudProps,
+    StandaloneProps,
+    YouTubeProps,
+} from '../types'
 
-const YouTube = ({ id, ratio = '16x9', className }) => {
+const YouTube = ({ id, ratio = '16x9', className }: YouTubeProps) => {
     const embedClassNames = classNames(classes.root, classes.responsive, className, {
         [classes.ratio16x9]: ratio === '16x9',
         [classes.ratio4x3]: ratio === '4x3',
@@ -30,12 +39,12 @@ const YouTube = ({ id, ratio = '16x9', className }) => {
     )
 }
 
-YouTube.propTypes = {
-    id: PropTypes.string.isRequired,
-    ratio: PropTypes.oneOf(['16x9', '4x3']),
-}
+// React 19 renders the camelCase `frameBorder` prop verbatim, so the original
+// lowercase `frameborder` attribute (passed through as an unknown attribute)
+// is kept via a spread to stay byte-identical with the previous output.
+const legacyFrameBorder = { frameborder: 'no' }
 
-const SoundCloud = ({ id, color = '09a3d5', title }) => {
+const SoundCloud = ({ id, color = '09a3d5', title }: SoundCloudProps) => {
     const url = `https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/${id}&color=%23${color}&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`
     return (
         <figure className={classes.root}>
@@ -44,7 +53,7 @@ const SoundCloud = ({ id, color = '09a3d5', title }) => {
                 width="100%"
                 height={166}
                 scrolling="no"
-                frameborder="no"
+                {...legacyFrameBorder}
                 allow="autoplay"
                 src={url}
             />
@@ -52,13 +61,7 @@ const SoundCloud = ({ id, color = '09a3d5', title }) => {
     )
 }
 
-SoundCloud.propTypes = {
-    id: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
-    color: PropTypes.string,
-}
-
-const Iframe = ({ title, src, width = 800, height = 300 }) => {
+const Iframe = ({ title, src, width = 800, height = 300 }: IframeProps) => {
     return (
         <iframe
             className={classes.standalone}
@@ -72,15 +75,7 @@ const Iframe = ({ title, src, width = 800, height = 300 }) => {
     )
 }
 
-Iframe.propTypes = {
-    title: PropTypes.string.isRequired,
-    src: PropTypes.string,
-    html: PropTypes.string,
-    width: PropTypes.number,
-    height: PropTypes.number,
-}
-
-const Image = ({ src, alt, title, href, ...props }) => {
+const Image = ({ src, alt, title, href, ...props }: EmbedImageProps) => {
     // This is only needed for image types that are NOT handled by
     // gatsby-remark-images, i.e. mostly SVGs. The plugin adds formatting
     // and support for captions, so this normalises that behaviour.
@@ -107,15 +102,21 @@ const Image = ({ src, alt, title, href, ...props }) => {
     )
 }
 
-const ImageScrollable = ({ src, alt, width, ...props }) => {
+const ImageScrollable = ({ src, alt, width, ...props }: ImageScrollableProps) => {
     return (
         <figure className={classNames(classes.standalone, classes.scrollable)}>
-            <img className={classes['image-scrollable']} src={src} alt={alt} width={width} height="auto" />
+            <img
+                className={classes['image-scrollable']}
+                src={src}
+                alt={alt}
+                width={width}
+                height="auto"
+            />
         </figure>
     )
 }
 
-const Standalone = ({ height, children, ...props }) => {
+const Standalone = ({ height, children, ...props }: StandaloneProps) => {
     return (
         <figure className={classes.standalone} style={{ height }}>
             {children}
@@ -123,7 +124,7 @@ const Standalone = ({ height, children, ...props }) => {
     )
 }
 
-const ImageFill = ({ image, ...props }) => {
+const ImageFill = ({ image, ...props }: ImageFillProps) => {
     return (
         <span
             className={classes['figure-fill']}
@@ -134,7 +135,7 @@ const ImageFill = ({ image, ...props }) => {
     )
 }
 
-const GoogleSheet = ({ id, link, height, button = 'View full table' }) => {
+const GoogleSheet = ({ id, link, height, button = 'View full table' }: GoogleSheetProps) => {
     return (
         <figure className={classes.root}>
             <iframe

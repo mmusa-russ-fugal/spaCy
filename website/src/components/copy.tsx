@@ -1,9 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import type { RefObject } from 'react'
 
 import Icon from './icon'
 import classes from '../styles/copy.module.sass'
+import type { CopyInputProps } from '../types'
 
-export function copyToClipboard(ref, callback) {
+export function copyToClipboard(
+    ref: RefObject<HTMLTextAreaElement | null>,
+    callback: (success: boolean) => void
+) {
     const isClient = typeof window !== 'undefined'
     if (ref.current && isClient) {
         ref.current.select()
@@ -14,14 +19,14 @@ export function copyToClipboard(ref, callback) {
     }
 }
 
-export default function CopyInput({ text, description, prefix }) {
+export default function CopyInput({ text, description, prefix }: CopyInputProps) {
     const isClient = typeof window !== 'undefined'
     const [supportsCopy, setSupportsCopy] = useState(false)
 
     useEffect(() => {
         setSupportsCopy(isClient && document.queryCommandSupported('copy'))
     }, [isClient])
-    const textareaRef = useRef()
+    const textareaRef = useRef<HTMLTextAreaElement>(null)
     const [copySuccess, setCopySuccess] = useState(false)
     const onClick = () => copyToClipboard(textareaRef, setCopySuccess)
 

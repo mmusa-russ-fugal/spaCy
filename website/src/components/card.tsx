@@ -1,13 +1,12 @@
-import React from 'react'
-import PropTypes from 'prop-types'
 import classNames from 'classnames'
 import ImageNext from 'next/image'
 
 import Link from './link'
 import { H5 } from './typography'
 import classes from '../styles/card.module.sass'
+import type { CardProps } from '../types'
 
-export default function Card({ title, to, image, header, small, onClick, children }) {
+export default function Card({ title, to, image, header, small, onClick, children }: CardProps) {
     return (
         <div className={classNames(classes.root, { [classes.small]: !!small })}>
             {header && (
@@ -34,13 +33,4 @@ export default function Card({ title, to, image, header, small, onClick, childre
             </Link>
         </div>
     )
-}
-
-Card.propTypes = {
-    title: PropTypes.node,
-    header: PropTypes.node,
-    to: PropTypes.string,
-    image: PropTypes.string,
-    onClick: PropTypes.func,
-    children: PropTypes.node,
 }

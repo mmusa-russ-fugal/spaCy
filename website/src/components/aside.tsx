@@ -1,9 +1,7 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-
 import classes from '../styles/aside.module.sass'
+import type { AsideProps } from '../types'
 
-export default function Aside({ title, children }) {
+export default function Aside({ title, children }: AsideProps) {
     return (
         <aside className={classes.root}>
             <div className={classes.content} role="complementary">
@@ -14,9 +12,4 @@ export default function Aside({ title, children }) {
             </div>
         </aside>
     )
-}
-
-Aside.propTypes = {
-    title: PropTypes.string,
-    children: PropTypes.node.isRequired,
 }

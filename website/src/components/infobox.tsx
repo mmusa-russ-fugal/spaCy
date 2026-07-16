@@ -1,9 +1,9 @@
-import React, { Fragment } from 'react'
-import PropTypes from 'prop-types'
+import { Fragment } from 'react'
 import classNames from 'classnames'
 
 import Icon from './icon'
 import classes from '../styles/infobox.module.sass'
+import type { InfoboxProps } from '../types'
 
 export default function Infobox({
     title,
@@ -13,7 +13,7 @@ export default function Infobox({
     list = false,
     className,
     children,
-}) {
+}: InfoboxProps) {
     const Wrapper = id ? 'div' : Fragment
     const infoboxClassNames = classNames(classes.root, className, {
         [classes.list]: !!list,
@@ -43,12 +43,4 @@ export default function Infobox({
             </aside>
         </Wrapper>
     )
-}
-
-Infobox.propTypes = {
-    title: PropTypes.node,
-    id: PropTypes.string,
-    variant: PropTypes.oneOf(['default', 'warning', 'danger']),
-    className: PropTypes.string,
-    children: PropTypes.node.isRequired,
 }

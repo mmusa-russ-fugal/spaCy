@@ -1,5 +1,4 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+import type { ReactNode } from 'react'
 import classNames from 'classnames'
 
 import Button from './button'
@@ -11,8 +10,19 @@ import Icon from './icon'
 
 import classes from '../styles/title.module.sass'
 import Image from 'next/image'
+import type { ApiDetails, TitleProps } from '../types'
 
-const MetaItem = ({ label, url, children, help }) => (
+const MetaItem = ({
+    label,
+    url,
+    children,
+    help,
+}: {
+    label: string
+    url?: string
+    children?: ReactNode
+    help?: string
+}) => (
     <span>
         <Label className={classes.label}>{label}:</Label>
         <OptionalLink to={url}>{children}</OptionalLink>
@@ -36,8 +46,9 @@ export default function Title({
     apiDetails,
     children,
     ...props
-}) {
-    const hasApiDetails = Object.values(apiDetails || {}).some((v) => v)
+}: TitleProps) {
+    const details: Partial<ApiDetails> = apiDetails || {}
+    const hasApiDetails = Object.values(details).some((v) => v)
     const metaIconProps = { className: classes['meta-icon'], width: 18 }
     return (
         <header className={classes.root}>
@@ -72,23 +83,23 @@ export default function Title({
 
             {hasApiDetails && (
                 <InlineList Component="div" className={classes.teaser}>
-                    {apiDetails.stringName && (
+                    {details.stringName && (
                         <MetaItem
                             label="String name"
                             //help="String name of the component to use with nlp.add_pipe"
                         >
-                            <InlineCode>{apiDetails.stringName}</InlineCode>
+                            <InlineCode>{details.stringName}</InlineCode>
                         </MetaItem>
                     )}
-                    {apiDetails.baseClass && (
-                        <MetaItem label="Base class" url={apiDetails.baseClass.slug}>
-                            <InlineCode>{apiDetails.baseClass.title}</InlineCode>
+                    {details.baseClass && (
+                        <MetaItem label="Base class" url={details.baseClass.slug}>
+                            <InlineCode>{details.baseClass.title}</InlineCode>
                         </MetaItem>
                     )}
-                    {apiDetails.trainable != null && (
+                    {details.trainable != null && (
                         <MetaItem label="Trainable">
-                            <span aria-label={apiDetails.trainable ? 'yes' : 'no'}>
-                                {apiDetails.trainable ? (
+                            <span aria-label={details.trainable ? 'yes' : 'no'}>
+                                {details.trainable ? (
                                     <Icon name="yes" variant="success" {...metaIconProps} />
                                 ) : (
                                     <Icon name="no" {...metaIconProps} />
@@ -102,13 +113,4 @@ export default function Title({
             {children}
         </header>
     )
-}
-
-Title.propTypes = {
-    title: PropTypes.string,
-    tag: PropTypes.string,
-    teaser: PropTypes.node,
-    source: PropTypes.string,
-    image: PropTypes.string,
-    children: PropTypes.node,
 }
