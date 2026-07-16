@@ -31,5 +31,5 @@ export interface DynamicMeta {
     replacements: Record<string, string>
 }
 
-/** Map of tag/component names to their React renderer (see `src/remark.js`). */
+/** Map of tag/component names to their React renderer (see `src/remark.ts`). */
 export type RemarkComponents = Record<string, ElementType>

@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import Link from './components/link'
 import Section, { Hr } from './components/section'
 import { Table, Tr, Th, Tx, Td } from './components/table'
@@ -43,7 +45,15 @@ import Tokenization101 from '../docs/usage/101/_tokenization.mdx'
 import Training101 from '../docs/usage/101/_training.mdx'
 import Vectors101 from '../docs/usage/101/_vectors-similarity.mdx'
 
-export const remarkComponents = {
+import type { RemarkComponents } from './types'
+
+/**
+ * The MDX component registration map: tag/component name -> React renderer.
+ * To register a new component for MDX content, import it above and add an
+ * entry here; any React component type works, including lazily loaded
+ * `next/dynamic` components (see `Code`, which stays dynamically loaded).
+ */
+export const remarkComponents: RemarkComponents = {
     a: Link,
     p: P,
     pre: Pre,
@@ -63,7 +73,7 @@ export const remarkComponents = {
     h5: H5,
     blockquote: Aside,
     section: Section,
-    wrapper: ({ children }) => children,
+    wrapper: ({ children }: { children?: ReactNode }) => children,
     hr: Hr,
 
     H2,
