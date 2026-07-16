@@ -1,21 +1,21 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+import { ReactNode } from 'react'
 import classNames from 'classnames'
 
 import { isString } from './util'
 import Icon from './icon'
 import classes from '../styles/tag.module.sass'
+import type { TagProps } from '../types'
 
 const MIN_VERSION = 3
 
-export default function Tag({ spaced = false, variant, tooltip, children }) {
+export default function Tag({ spaced = false, variant, tooltip, children }: TagProps) {
     if (variant === 'new') {
-        const isValid = isString(children) && !isNaN(children)
+        const isValid = isString(children) && !isNaN(Number(children))
         const version = isValid ? Number(children).toFixed(1) : children
         const tooltipText = `This feature is new and was introduced in spaCy v${version}`
         // We probably want to handle this more elegantly, but the idea is
         // that we can hide tags referring to old versions
-        const major = isString(version) ? Number(version.split('.')[0]) : version
+        const major = isString(version) ? Number(version.split('.')[0]) : Number(version)
         return major < MIN_VERSION ? null : (
             <TagTemplate spaced={spaced} tooltip={tooltipText}>
                 v{version}
@@ -37,7 +37,15 @@ export default function Tag({ spaced = false, variant, tooltip, children }) {
     )
 }
 
-const TagTemplate = ({ spaced, tooltip, children }) => {
+const TagTemplate = ({
+    spaced,
+    tooltip,
+    children,
+}: {
+    spaced?: boolean
+    tooltip?: string
+    children: ReactNode
+}) => {
     const tagClassNames = classNames(classes.root, {
         [classes.spaced]: spaced,
     })
@@ -47,10 +55,4 @@ const TagTemplate = ({ spaced, tooltip, children }) => {
             {tooltip && <Icon name="help" width={12} className={classes.icon} />}
         </span>
     )
-}
-
-Tag.propTypes = {
-    spaced: PropTypes.bool,
-    tooltip: PropTypes.string,
-    children: PropTypes.node.isRequired,
 }

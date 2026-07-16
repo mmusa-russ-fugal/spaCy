@@ -1,19 +1,19 @@
-import React, { Fragment } from 'react'
-import PropTypes from 'prop-types'
+import { Fragment, ReactNode } from 'react'
 import NextLink from 'next/link'
 import classNames from 'classnames'
 
 import Icon from './icon'
 import classes from '../styles/link.module.sass'
 import { isString, isImage } from './util'
+import type { IconName, LinkProps, OptionalLinkProps } from '../types'
 
 const listUrlInternal = ['prodi.gy', 'spacy.io', 'explosion.ai']
-const Whitespace = ({ children }) => (
+const Whitespace = ({ children }: { children: ReactNode }) => (
     // Ensure that links are always wrapped in spaces
     <> {children} </>
 )
 
-function getIcon(dest) {
+function getIcon(dest: string): IconName | null {
     if (/(github.com)/.test(dest)) return 'code'
     if (/^\/?api\/architectures#/.test(dest)) return 'network'
     if (/^\/?api/.test(dest)) return 'docs'
@@ -32,8 +32,10 @@ export default function Link({
     forceExternal = false,
     className,
     ...other
-}) {
-    const dest = to || href
+}: LinkProps) {
+    // Every call site passes `to` or `href`; the `''` fallback only satisfies
+    // NextLink's required `href` (previously the unreachable no-dest case threw).
+    const dest = to || href || ''
     const external = forceExternal || /(http(s?)):\/\//gi.test(dest)
     const icon = getIcon(dest)
     const withIcon = !noLinkLayout && !hideIcon && !!icon && !isImage(children)
@@ -47,7 +49,7 @@ export default function Link({
     const content = (
         <>
             {sourceWithText ? <span className={classes['source-text']}>{children}</span> : children}
-            {withIcon && <Icon name={icon} width={16} inline className={classes.icon} />}
+            {withIcon && icon && <Icon name={icon} width={16} inline className={classes.icon} />}
         </>
     )
 
@@ -81,7 +83,7 @@ export default function Link({
     )
 }
 
-export const OptionalLink = ({ to, href, children, ...props }) => {
+export const OptionalLink = ({ to, href, children, ...props }: OptionalLinkProps) => {
     const dest = to || href
     return dest ? (
         <Link to={dest} {...props}>
@@ -90,15 +92,4 @@ export const OptionalLink = ({ to, href, children, ...props }) => {
     ) : (
         children || null
     )
-}
-
-Link.propTypes = {
-    children: PropTypes.node.isRequired,
-    to: PropTypes.string,
-    href: PropTypes.string,
-    onClick: PropTypes.func,
-    noLinkLayout: PropTypes.bool,
-    hideIcon: PropTypes.bool,
-    ws: PropTypes.bool,
-    className: PropTypes.string,
 }

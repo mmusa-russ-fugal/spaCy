@@ -1,13 +1,13 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+import { ChangeEvent } from 'react'
 import classNames from 'classnames'
 import { useRouter } from 'next/router'
 
 import classes from '../styles/dropdown.module.sass'
+import type { DropdownProps } from '../types'
 
-export default function Dropdown({ defaultValue, className, onChange, children }) {
+export default function Dropdown({ defaultValue, className, onChange, children }: DropdownProps) {
     const router = useRouter()
-    const defaultOnChange = ({ target }) => {
+    const defaultOnChange = ({ target }: ChangeEvent<HTMLSelectElement>) => {
         const isExternal = /((http(s?)):\/\/|mailto:)/gi.test(target.value)
         if (isExternal) {
             window.location.href = target.value
@@ -24,11 +24,4 @@ export default function Dropdown({ defaultValue, className, onChange, children }
             {children}
         </select>
     )
-}
-
-Dropdown.propTypes = {
-    defaultValue: PropTypes.string,
-    className: PropTypes.string,
-    onChange: PropTypes.func,
-    children: PropTypes.node.isRequired,
 }

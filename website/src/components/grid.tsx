@@ -1,8 +1,7 @@
-import React from 'react'
-import PropTypes from 'prop-types'
 import classNames from 'classnames'
 
 import classes from '../styles/grid.module.sass'
+import type { GridProps } from '../types'
 
 export default function Grid({
     cols = 1,
@@ -11,7 +10,7 @@ export default function Grid({
     className,
     style,
     children,
-}) {
+}: GridProps) {
     const gridClassNames = classNames(classes.root, className, {
         [classes.narrow]: narrow,
         [classes.spacing]: gutterBottom,
@@ -24,10 +23,4 @@ export default function Grid({
             {children}
         </div>
     )
-}
-
-Grid.propTypes = {
-    cols: PropTypes.oneOf([1, 2, 3, 4]),
-    narrow: PropTypes.bool,
-    gutterBottom: PropTypes.bool,
 }
