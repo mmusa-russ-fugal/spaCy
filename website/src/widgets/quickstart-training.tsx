@@ -1,16 +1,26 @@
-import React, { useState } from 'react'
+import React, { useState, type ComponentType } from 'react'
 import Prism from 'prismjs'
 
 import 'prismjs/components/prism-ini.min.js'
 
-import { Quickstart } from '../components/quickstart'
+import { Quickstart as QuickstartUntyped } from '../components/quickstart'
 import generator, { DATA as GENERATOR_DATA } from './quickstart-training-generator'
+import type {
+    HtmlToReactProps,
+    QuickstartGroup,
+    QuickstartProps,
+    QuickstartTrainingWidgetProps,
+} from '../types'
 import models from '../../meta/languages.json'
 import dynamic from 'next/dynamic'
 
+// `quickstart.js` is not converted yet; its inferred props are too narrow
+// (e.g. `data: never[]`), so type it via the curated props at this boundary.
+const Quickstart = QuickstartUntyped as ComponentType<QuickstartProps>
+
 const DEFAULT_LANG = 'en'
-const DEFAULT_HARDWARE = 'cpu'
-const DEFAULT_OPT = 'efficiency'
+const DEFAULT_HARDWARE: string = 'cpu'
+const DEFAULT_OPT: string = 'efficiency'
 const DEFAULT_TEXTCAT_EXCLUSIVE = true
 const COMPONENTS = [
     'tagger',
@@ -25,7 +35,7 @@ const COMMENT = `# This is an auto-generated partial config. To use it with 'spa
 # you can run spacy init fill-config to auto-fill all default settings:
 # python -m spacy init fill-config ./base_config.cfg ./config.cfg`
 
-const DATA = [
+const DATA: QuickstartGroup[] = [
     {
         id: 'lang',
         title: 'Language',
@@ -70,20 +80,31 @@ const DATA = [
     },
 ]
 
-const HtmlToReactDynamic = dynamic(() => import('../components/htmlToReact'), {
-    loading: () => <></>,
-})
+// `htmlToReact.js` is not converted yet and its inferred return type is the
+// DOM `Node` produced by html-to-react, so type the lazy component honestly.
+const HtmlToReactDynamic = dynamic<HtmlToReactProps>(
+    () =>
+        import('../components/htmlToReact') as unknown as Promise<{
+            default: ComponentType<HtmlToReactProps>
+        }>,
+    {
+        loading: () => <></>,
+    }
+)
 
-/** @param {import('../types').QuickstartTrainingWidgetProps} props */
-export default function QuickstartTraining({ id, title, download = 'base_config.cfg' }) {
+export default function QuickstartTraining({
+    id,
+    title,
+    download = 'base_config.cfg',
+}: QuickstartTrainingWidgetProps) {
     const [lang, setLang] = useState(DEFAULT_LANG)
-    const [_components, _setComponents] = useState([])
-    const [components, setComponents] = useState([])
-    const [[hardware], setHardware] = useState([DEFAULT_HARDWARE])
-    const [[optimize], setOptimize] = useState([DEFAULT_OPT])
+    const [_components, _setComponents] = useState<string[]>([])
+    const [components, setComponents] = useState<string[]>([])
+    const [[hardware], setHardware] = useState<string[]>([DEFAULT_HARDWARE])
+    const [[optimize], setOptimize] = useState<string[]>([DEFAULT_OPT])
     const [textcatExclusive, setTextcatExclusive] = useState(DEFAULT_TEXTCAT_EXCLUSIVE)
 
-    function updateComponents(value, isExclusive) {
+    function updateComponents(value: string[], isExclusive: boolean) {
         _setComponents(value)
         const updated = value.map((c) =>
             c === 'textcat' && !isExclusive ? 'textcat_multilabel' : c
@@ -91,12 +112,12 @@ export default function QuickstartTraining({ id, title, download = 'base_config.
         setComponents(updated)
     }
 
-    const setters = {
+    const setters: QuickstartProps['setters'] = {
         lang: setLang,
-        components: (v) => updateComponents(v, textcatExclusive),
+        components: (v: string[]) => updateComponents(v, textcatExclusive),
         hardware: setHardware,
         optimize: setOptimize,
-        textcat: (v) => {
+        textcat: (v: string | string[]) => {
             const isExclusive = v.includes('exclusive')
             setTextcatExclusive(isExclusive)
             updateComponents(_components, isExclusive)

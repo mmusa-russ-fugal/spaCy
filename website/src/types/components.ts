@@ -529,6 +529,15 @@ export interface QuickstartGroup {
     hidden?: boolean
 }
 
+/**
+ * Handler for one Quickstart group's value changes. The widget calls it with
+ * `string[]` for checkbox/radio option groups and with `string` for dropdown
+ * selections and free-text inputs, so callers may type their handler for the
+ * shape their group actually produces (a bare `useState` setter works).
+ */
+export type QuickstartSetter =
+    ((value: string) => void) | ((value: string[]) => void) | ((value: string | string[]) => void)
+
 export interface QuickstartProps {
     data?: QuickstartGroup[]
     title?: StringOrNode
@@ -537,7 +546,7 @@ export interface QuickstartProps {
     download?: string
     rawContent?: string | null
     id?: string
-    setters?: Record<string, (value: string | string[]) => void>
+    setters?: Record<string, QuickstartSetter>
     showDropdown?: Record<string, () => boolean>
     hidePrompts?: boolean
     small?: boolean
@@ -548,7 +557,8 @@ export interface QuickstartProps {
 
 export interface QSProps {
     children?: ReactNode
-    prompt?: string
+    /** Prompt style (`'bash'`/`'python'`); `false` disables the prompt. */
+    prompt?: string | false
     divider?: boolean
     comment?: boolean
     [key: string]: unknown

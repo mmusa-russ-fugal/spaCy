@@ -1,7 +1,7 @@
 /**
  * Prop types for `website/src/widgets/*.js`.
  */
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 
 /** Named logos rendered by the integration widget. */
 export type IntegrationLogoName =
@@ -13,14 +13,16 @@ export interface IntegrationLogoProps {
     width?: number | string
     height?: number | string
     maxWidth?: number | string
-    align?: string
+    /** Applied as the CSS `float` of the logo (`'none'` when unset). */
+    align?: CSSProperties['float']
     [key: string]: unknown
 }
 
 export interface IntegrationProps {
     height?: number
     url?: string
-    logo?: string
+    /** Passed through as the `IntegrationLogo` name. */
+    logo?: IntegrationLogoName
     title?: string
     children?: ReactNode
 }
@@ -58,6 +60,7 @@ export interface QuickstartModelsWidgetProps {
 }
 
 export interface StyleguideCardProps {
-    style?: Record<string, string | number>
+    /** Merged into the card header's inline style. */
+    style?: CSSProperties
     children?: ReactNode
 }

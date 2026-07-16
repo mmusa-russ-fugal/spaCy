@@ -13,16 +13,24 @@ import Aside from './components/aside'
 import Button from './components/button'
 import Tag from './components/tag'
 import Grid from './components/grid'
-import { YouTube, SoundCloud, Iframe, Image, ImageScrollable, GoogleSheet, Standalone } from './components/embed'
+import {
+    YouTube,
+    SoundCloud,
+    Iframe,
+    Image,
+    ImageScrollable,
+    GoogleSheet,
+    Standalone,
+} from './components/embed'
 import Project from './widgets/project'
-import { Integration, IntegrationLogo } from './widgets/integration.js'
+import { Integration, IntegrationLogo } from './widgets/integration'
 import { Logos, Colors, Patterns } from './widgets/styleguide'
-import Changelog from './widgets/changelog.js'
-import Features from './widgets/features.js'
-import Languages from './widgets/languages.js'
-import QuickstartInstall from './widgets/quickstart-install.js'
-import QuickstartTraining from './widgets/quickstart-training.js'
-import QuickstartModels from './widgets/quickstart-models.js'
+import Changelog from './widgets/changelog'
+import Features from './widgets/features'
+import Languages from './widgets/languages'
+import QuickstartInstall from './widgets/quickstart-install'
+import QuickstartTraining from './widgets/quickstart-training'
+import QuickstartModels from './widgets/quickstart-models'
 
 import Benchmarks from '../docs/usage/_benchmarks-models.mdx'
 import Architecture101 from '../docs/usage/101/_architecture.mdx'

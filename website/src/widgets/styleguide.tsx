@@ -1,16 +1,18 @@
-import React from 'react'
+import React, { type CSSProperties } from 'react'
 
 import Grid from '../components/grid'
 import { Label } from '../components/typography'
 import Link from '../components/link'
 import SVG from 'react-inlinesvg'
+import type { StaticImageData } from 'next/image'
+import type { StyleguideCardProps } from '../types'
 
 import logoSpacy from '../images/logo.svg'
 import patternBlue from '../images/pattern_blue.png'
 import patternGreen from '../images/pattern_green.png'
 import patternPurple from '../images/pattern_purple.png'
 
-const colors = {
+const colors: Record<string, string> = {
     dark: 'var(--color-front)',
     medium: 'var(--color-dark)',
     light: 'var(--color-subtle)',
@@ -27,13 +29,13 @@ const colors = {
     'light yellow': 'var(--color-yellow-light)',
 }
 
-const patterns = {
+const patterns: Record<string, StaticImageData> = {
     'blue pattern': patternBlue,
     'green pattern': patternGreen,
     'purple pattern': patternPurple,
 }
 
-const Card = ({ style = {}, children }) => (
+const Card = ({ style = {}, children }: StyleguideCardProps) => (
     <div
         style={{
             borderRadius: 'var(--border-radius)',
@@ -63,7 +65,7 @@ export const Colors = () => (
 )
 
 export const Patterns = () => {
-    const imgStyle = (name) => ({
+    const imgStyle = (name: string): CSSProperties => ({
         height: 125,
         background: `url(${patterns[name].src}) center/150% repeat`,
     })

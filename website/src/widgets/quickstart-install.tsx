@@ -1,17 +1,30 @@
-import React, { useState } from 'react'
+import React, { useState, type ComponentType } from 'react'
 
-import { Quickstart, QS } from '../components/quickstart'
+import { Quickstart as QuickstartUntyped, QS as QSUntyped } from '../components/quickstart'
 import { repo, DEFAULT_BRANCH } from '../components/util'
+import type {
+    LanguageInfo,
+    QSProps,
+    QuickstartInstallWidgetProps,
+    QuickstartOption,
+    QuickstartGroup,
+    QuickstartProps,
+} from '../types'
 import siteMetadata from '../../meta/site.json'
 import models from '../../meta/languages.json'
+
+// `quickstart.js` is not converted yet; its inferred props are too narrow
+// (e.g. `data: never[]`), so type it via the curated props at this boundary.
+const Quickstart = QuickstartUntyped as ComponentType<QuickstartProps>
+const QS = QSUntyped as ComponentType<QSProps>
 
 const DEFAULT_OS = 'mac'
 const DEFAULT_PLATFORM = 'x86'
 const DEFAULT_MODELS = ['en']
-const DEFAULT_OPT = 'efficiency'
-const DEFAULT_HARDWARE = 'cpu'
+const DEFAULT_OPT: string = 'efficiency'
+const DEFAULT_HARDWARE: string = 'cpu'
 const DEFAULT_CUDA = 'cuda11x'
-const CUDA = {
+const CUDA: Record<string, string> = {
     '8.0': 'cuda80',
     '9.0': 'cuda90',
     '9.1': 'cuda91',
@@ -26,7 +39,7 @@ const CUDA = {
 }
 const LANG_EXTRAS = ['ja'] // only for languages with models
 
-const QuickstartInstall = ({ id, title }) => {
+const QuickstartInstall = ({ id, title }: QuickstartInstallWidgetProps) => {
     const [train, setTrain] = useState(false)
     const [platform, setPlatform] = useState(DEFAULT_PLATFORM)
     const [os, setOs] = useState(DEFAULT_OS)
@@ -34,13 +47,13 @@ const QuickstartInstall = ({ id, title }) => {
     const [cuda, setCuda] = useState(DEFAULT_CUDA)
     const [selectedModels, setModels] = useState(DEFAULT_MODELS)
     const [efficiency, setEfficiency] = useState(DEFAULT_OPT === 'efficiency')
-    const setters = {
-        hardware: (v) => (Array.isArray(v) ? setHardware(v[0]) : setCuda(v)),
-        config: (v) => setTrain(v.includes('train')),
+    const setters: QuickstartProps['setters'] = {
+        hardware: (v: string | string[]) => (Array.isArray(v) ? setHardware(v[0]) : setCuda(v)),
+        config: (v: string | string[]) => setTrain(v.includes('train')),
         models: setModels,
-        optimize: (v) => setEfficiency(v.includes('efficiency')),
-        platform: (v) => setPlatform(v[0]),
-        os: (v) => setOs(v[0]),
+        optimize: (v: string | string[]) => setEfficiency(v.includes('efficiency')),
+        platform: (v: string | string[]) => setPlatform(v[0]),
+        os: (v: string | string[]) => setOs(v[0]),
     }
     const showDropdown = {
         hardware: () => hardware === 'gpu',
@@ -57,10 +70,19 @@ const QuickstartInstall = ({ id, title }) => {
         .filter((e) => e)
         .join(',')
 
-    const { nightly } = siteMetadata
+    // site.json has no `nightly` key (it is derived in `meta/dynamicMeta.mjs`),
+    // so this is always `undefined`; kept as-is to preserve behavior.
+    const { nightly } = siteMetadata as typeof siteMetadata & { nightly?: boolean }
     const pkg = nightly ? 'spacy-nightly' : 'spacy'
-    const languages = models.languages.filter(({ models }) => !!models)
-    const data = [
+    const languages = (models.languages as LanguageInfo[]).filter(
+        (lang): lang is LanguageInfo & { models: string[] } => !!lang.models
+    )
+    const packageOptions: (QuickstartOption | null)[] = [
+        { id: 'pip', title: 'pip', checked: true },
+        !nightly ? { id: 'conda', title: 'conda' } : null,
+        { id: 'source', title: 'from source' },
+    ]
+    const data: QuickstartGroup[] = [
         {
             id: 'os',
             title: 'Operating system',
@@ -83,11 +105,7 @@ const QuickstartInstall = ({ id, title }) => {
         {
             id: 'package',
             title: 'Package manager',
-            options: [
-                { id: 'pip', title: 'pip', checked: true },
-                !nightly ? { id: 'conda', title: 'conda' } : null,
-                { id: 'source', title: 'from source' },
-            ].filter((o) => o),
+            options: packageOptions.filter((o): o is QuickstartOption => o !== null),
         },
         {
             id: 'hardware',

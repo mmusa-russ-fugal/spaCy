@@ -1,15 +1,39 @@
-import React, { useState, useEffect, Fragment } from 'react'
+import React, { useState, useEffect, Fragment, type ComponentType } from 'react'
 
 import Link from '../components/link'
 import { InlineCode } from '../components/inlineCode'
 import { Label, H3 } from '../components/typography'
-import { Table, Tr, Th, Td } from '../components/table'
-import Infobox from '../components/infobox'
+import { Table as TableUntyped, Tr, Th, Td as TdUntyped } from '../components/table'
+import InfoboxUntyped from '../components/infobox'
 import { repo } from '../components/util'
+import type { InfoboxProps, TableProps, TdProps } from '../types'
 
-function formatReleases(json) {
+// `table.js` / `infobox.js` are not converted yet; their inferred props mark
+// every prop required, so type them via the curated props at this boundary.
+const Table = TableUntyped as ComponentType<TableProps>
+const Td = TdUntyped as ComponentType<TdProps>
+const Infobox = InfoboxUntyped as ComponentType<InfoboxProps>
+
+/** The subset of a GitHub REST release object read by this widget. */
+interface GitHubRelease {
+    name: string | null
+    html_url: string
+    published_at: string
+    tag_name: string
+    prerelease: boolean
+}
+
+interface FormattedRelease {
+    title: string
+    url: string
+    date: string
+    tag: string
+    pre: boolean
+}
+
+function formatReleases(json: GitHubRelease[]): FormattedRelease[] {
     return Object.values(json)
-        .filter((release) => release.name)
+        .filter((release): release is GitHubRelease & { name: string } => !!release.name)
         .map((release) => ({
             title:
                 release.name.split(': ').length === 2 ? release.name.split(': ')[1] : release.name,
@@ -24,8 +48,8 @@ const Changelog = () => {
     const [initialized, setInitialized] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [isError, setIsError] = useState(true)
-    const [releases, setReleases] = useState([])
-    const [prereleases, setPrereleases] = useState([])
+    const [releases, setReleases] = useState<FormattedRelease[]>([])
+    const [prereleases, setPrereleases] = useState<FormattedRelease[]>([])
 
     useEffect(() => {
         window.dispatchEvent(new Event('resize')) // scroll position for progress
