@@ -8,6 +8,20 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <title>spaCy Pipeline Composer</title>
+    <script>
+      // Apply the saved/system theme before React mounts to avoid a flash.
+      // Kept in sync with src/hooks/useTheme.ts.
+      ;(function () {
+        try {
+          var stored = localStorage.getItem("composer-theme")
+          var dark =
+            stored === "dark" ||
+            (stored !== "light" &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches)
+          document.documentElement.classList.toggle("dark", dark)
+        } catch (e) {}
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -21,10 +21,20 @@ export function OutputTabs({ spec, pythonCode, configCfg }: OutputTabsProps) {
         <TabsTrigger value="run">Run</TabsTrigger>
       </TabsList>
       <TabsContent value="python" className="min-h-0">
-        <CodeView code={pythonCode} filename="pipeline.py" emptyHint={EMPTY_HINT} />
+        <CodeView
+          code={pythonCode}
+          filename="pipeline.py"
+          emptyHint={EMPTY_HINT}
+          lang="python"
+        />
       </TabsContent>
       <TabsContent value="config" className="min-h-0">
-        <CodeView code={configCfg} filename="config.cfg" emptyHint={EMPTY_HINT} />
+        <CodeView
+          code={configCfg}
+          filename="config.cfg"
+          emptyHint={EMPTY_HINT}
+          lang="ini"
+        />
       </TabsContent>
       <TabsContent value="run" className="min-h-0">
         <RunTab spec={spec} />

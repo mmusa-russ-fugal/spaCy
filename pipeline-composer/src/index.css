@@ -209,3 +209,83 @@ textarea.blocklyHtmlTextAreaInput {
   white-space: pre;
   overflow: auto;
 }
+
+/* Syntax highlighting (Prism) --------------------------------------------
+   Token roles as CSS variables so both the Python and config.cfg panes share
+   one palette that adapts to the light/dark theme. Scoped to `.prism-code`
+   (see CodeView) so the generic Prism `.token` classes never leak elsewhere. */
+:root {
+  --sh-comment: hsl(214 12% 45%); /* muted-foreground-ish */
+  --sh-keyword: hsl(255 61% 54%); /* --color-theme-purple */
+  --sh-string: hsl(164 84% 30%); /* darker --color-theme-green */
+  --sh-number: hsl(28 82% 42%); /* orange */
+  --sh-function: hsl(199 89% 38%); /* deep theme blue */
+  --sh-class: hsl(38 92% 36%); /* amber/gold */
+  --sh-punctuation: hsl(214 12% 45%);
+  --sh-decorator: hsl(340 70% 48%); /* pink/red */
+  --sh-key: hsl(199 89% 38%); /* ini key / section */
+}
+
+.dark {
+  --sh-comment: hsl(213 12% 58%);
+  --sh-keyword: hsl(262 78% 78%);
+  --sh-string: hsl(150 55% 62%);
+  --sh-number: hsl(28 90% 68%);
+  --sh-function: hsl(199 90% 68%);
+  --sh-class: hsl(40 92% 68%);
+  --sh-punctuation: hsl(213 12% 62%);
+  --sh-decorator: hsl(340 82% 74%);
+  --sh-key: hsl(199 90% 70%);
+}
+
+.prism-code .token.comment,
+.prism-code .token.prolog,
+.prism-code .token.doctype,
+.prism-code .token.cdata {
+  color: var(--sh-comment);
+  font-style: italic;
+}
+.prism-code .token.keyword,
+.prism-code .token.boolean-keyword {
+  color: var(--sh-keyword);
+}
+.prism-code .token.string,
+.prism-code .token.char,
+.prism-code .token.attr-value,
+.prism-code .token.value,
+.prism-code .token.regex,
+.prism-code .token.triple-quoted-string {
+  color: var(--sh-string);
+}
+.prism-code .token.number,
+.prism-code .token.boolean,
+.prism-code .token.constant {
+  color: var(--sh-number);
+}
+.prism-code .token.function,
+.prism-code .token.builtin {
+  color: var(--sh-function);
+}
+.prism-code .token.class-name,
+.prism-code .token.namespace {
+  color: var(--sh-class);
+}
+.prism-code .token.operator,
+.prism-code .token.punctuation {
+  color: var(--sh-punctuation);
+}
+.prism-code .token.decorator,
+.prism-code .token.annotation {
+  color: var(--sh-decorator);
+}
+.prism-code .token.attr-name,
+.prism-code .token.key,
+.prism-code .token.property,
+.prism-code .token.section-name,
+.prism-code .token.selector {
+  color: var(--sh-key);
+}
+.prism-code .token.section-name,
+.prism-code .token.selector {
+  font-weight: 600;
+}

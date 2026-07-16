@@ -1,17 +1,22 @@
 import { CheckIcon, CopyIcon, DownloadIcon } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
+import { highlightCode, type HighlightLang } from "@/lib/highlight"
 
 export interface CodeViewProps {
   code: string
   filename: string
   emptyHint: string
+  /** Grammar used to syntax-highlight the displayed code. */
+  lang: HighlightLang
 }
 
-export function CodeView({ code, filename, emptyHint }: CodeViewProps) {
+export function CodeView({ code, filename, emptyHint, lang }: CodeViewProps) {
   const [copied, setCopied] = useState(false)
+  // Display-only markup; `code` stays raw for copy/download below.
+  const highlighted = useMemo(() => highlightCode(code, lang), [code, lang])
 
   if (!code) {
     return (
@@ -54,8 +59,8 @@ export function CodeView({ code, filename, emptyHint }: CodeViewProps) {
         </Button>
       </div>
       <div className="h-full overflow-auto">
-        <pre className="min-h-full whitespace-pre p-4 pt-12 font-mono text-xs leading-relaxed">
-          {code}
+        <pre className="prism-code min-h-full whitespace-pre p-4 pt-12 font-mono text-xs leading-relaxed">
+          <code dangerouslySetInnerHTML={{ __html: highlighted }} />
         </pre>
       </div>
     </div>

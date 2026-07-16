@@ -2,12 +2,15 @@ import {
   DownloadIcon,
   FolderOpenIcon,
   MenuIcon,
+  MoonIcon,
   ShapesIcon,
+  SunIcon,
   Trash2Icon,
 } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
+import { useTheme } from "@/hooks/useTheme"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +33,9 @@ export function Toolbar({
   loadWorkspaceState,
   clearCanvas,
 }: ToolbarProps) {
+  const { theme, toggle: toggleTheme } = useTheme()
+  const nextTheme = theme === "dark" ? "light" : "dark"
+
   const exportJson = () => {
     const state = getWorkspaceState()
     if (!state) return
@@ -93,6 +99,15 @@ export function Toolbar({
         <Button variant="outline" size="sm" onClick={clearCanvas}>
           <Trash2Icon /> Clear
         </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={toggleTheme}
+          aria-label={`Switch to ${nextTheme} theme`}
+          title={`Switch to ${nextTheme} theme`}
+        >
+          {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+        </Button>
       </div>
 
       {/* Mobile: collapse actions into one menu */}
@@ -115,6 +130,11 @@ export function Toolbar({
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={clearCanvas}>
               <Trash2Icon /> Clear canvas
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={toggleTheme}>
+              {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+              {`Switch to ${nextTheme} theme`}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
