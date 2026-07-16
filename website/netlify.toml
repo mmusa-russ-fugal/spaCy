@@ -16,3 +16,15 @@
   [headers.values]
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
+
+# The service worker must never be served from HTTP caches: browsers
+# re-check /sw.js on navigation, and a cached copy would delay updates
+# (including any future kill switch) from reaching returning visitors.
+# With `output: 'export'`, headers() in next.config.mjs does not apply,
+# so this must live at the hosting layer. Netlify already serves .js as
+# application/javascript; Content-Type is set explicitly for safety.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Content-Type = "application/javascript; charset=utf-8"
